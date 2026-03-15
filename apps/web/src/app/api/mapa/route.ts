@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { applyRateLimit, withCacheHeaders } from '@/lib/api-helpers';
+import { sanitizeString } from '@/lib/validate';
 
 export async function GET(request: NextRequest) {
+  const limited = applyRateLimit(request);
+  if (limited) return limited;
+
   const params = request.nextUrl.searchParams;
-  const ciudad = params.get('ciudad');
+  const ciudad = sanitizeString(params.get('ciudad'));
 
   if (!ciudad) {
     return NextResponse.json({ error: 'ciudad es requerido' }, { status: 400 });
@@ -71,7 +76,7 @@ export async function GET(request: NextRequest) {
     },
   }));
 
-  return NextResponse.json({
+  return withCacheHeaders({
     predios: {
       type: 'FeatureCollection',
       features: prediosFeatures,
@@ -84,5 +89,5 @@ export async function GET(request: NextRequest) {
       type: 'FeatureCollection',
       features: parqueaderosFeatures,
     },
-  });
+  }, 120);
 }

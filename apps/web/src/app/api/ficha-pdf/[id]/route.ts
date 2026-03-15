@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { applyRateLimit, withCacheHeaders } from '@/lib/api-helpers';
+import { isValidUUID } from '@/lib/validate';
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = applyRateLimit(request);
+  if (limited) return limited;
+
   const { id } = await params;
+
+  if (!isValidUUID(id)) {
+    return NextResponse.json(
+      { error: 'ID de predio no válido' },
+      { status: 400 }
+    );
+  }
 
   // Get predio + ficha
   const [predioRes, fichaRes] = await Promise.all([
@@ -36,7 +48,7 @@ export async function GET(
   const ficha = fichaRes.data;
   const ciudadNombre = (predio.ciudades as { nombre: string } | null)?.nombre || '';
 
-  return NextResponse.json({
+  return withCacheHeaders({
     predio: {
       nombre: predio.nombre,
       direccion: predio.direccion,
@@ -49,5 +61,5 @@ export async function GET(
     generado_en: ficha.generado_en,
     // TODO: Implement actual PDF generation with @react-pdf/renderer
     // For now, the frontend handles PDF rendering client-side
-  });
+  }, 600);
 }

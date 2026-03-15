@@ -1,12 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { generarFichaTecnica } from '@/lib/claude';
+import { applyRateLimit, withCacheHeaders } from '@/lib/api-helpers';
+import { isValidUUID } from '@/lib/validate';
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = applyRateLimit(request);
+  if (limited) return limited;
+
   const { id } = await params;
+
+  if (!isValidUUID(id)) {
+    return NextResponse.json(
+      { error: 'ID de predio no válido' },
+      { status: 400 }
+    );
+  }
 
   const { data: ficha } = await supabase
     .from('fichas_tecnicas')
@@ -20,7 +32,7 @@ export async function GET(
     const age = Date.now() - new Date(ficha.generado_en).getTime();
     const sevenDays = 7 * 24 * 60 * 60 * 1000;
     if (age < sevenDays) {
-      return NextResponse.json(ficha);
+      return withCacheHeaders(ficha, 300);
     }
   }
 
@@ -29,14 +41,39 @@ export async function GET(
   if ('error' in result) {
     return NextResponse.json({ error: result.error }, { status: 500 });
   }
-  return NextResponse.json(result);
+  return withCacheHeaders(result, 300);
 }
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = applyRateLimit(request, true);
+  if (limited) return limited;
+
   const { id } = await params;
+
+  if (!isValidUUID(id)) {
+    return NextResponse.json(
+      { error: 'ID de predio no válido' },
+      { status: 400 }
+    );
+  }
+
+  // Deduplication: check if a ficha was generated in the last 60 seconds
+  const { data: recentFicha } = await supabase
+    .from('fichas_tecnicas')
+    .select('*')
+    .eq('predio_id', id)
+    .gte('generado_en', new Date(Date.now() - 60_000).toISOString())
+    .order('generado_en', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (recentFicha) {
+    return NextResponse.json(recentFicha);
+  }
+
   const result = await generateFichaForPredio(id);
   if ('error' in result) {
     return NextResponse.json({ error: result.error }, { status: 500 });

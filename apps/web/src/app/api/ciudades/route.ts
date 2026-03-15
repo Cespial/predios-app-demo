@@ -1,7 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { applyRateLimit, withCacheHeaders } from '@/lib/api-helpers';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const limited = applyRateLimit(request);
+  if (limited) return limited;
+
   const { data: ciudades, error } = await supabase
     .from('ciudades')
     .select('*');
@@ -51,5 +55,5 @@ export async function GET() {
     })
   );
 
-  return NextResponse.json(result);
+  return withCacheHeaders(result, 300);
 }

@@ -1,16 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { applyRateLimit, withCacheHeaders } from '@/lib/api-helpers';
+import { clampNumber, isValidPropietario, sanitizeString } from '@/lib/validate';
 
 export async function GET(request: NextRequest) {
+  const limited = applyRateLimit(request);
+  if (limited) return limited;
+
   const params = request.nextUrl.searchParams;
-  const ciudad = params.get('ciudad');
-  const scoreMin = Number(params.get('score_min') || 0);
-  const propietario = params.get('propietario');
-  const areaMin = Number(params.get('area_min') || 0);
+  const ciudad = sanitizeString(params.get('ciudad'));
+  const scoreMin = clampNumber(params.get('score_min'), 0, 100, 0);
+  const areaMin = clampNumber(params.get('area_min'), 0, 1000000, 0);
   const sinRestricciones = params.get('sin_restricciones') === 'true';
-  const page = Math.max(1, Number(params.get('page') || 1));
-  const limit = Math.min(100, Math.max(1, Number(params.get('limit') || 20)));
+  const page = Math.round(clampNumber(params.get('page'), 1, 1000, 1));
+  const limit = Math.round(clampNumber(params.get('limit'), 1, 100, 20));
   const offset = (page - 1) * limit;
+
+  const propietario = params.get('propietario');
+  if (propietario && !isValidPropietario(propietario)) {
+    return NextResponse.json(
+      { error: 'Valor de propietario no válido' },
+      { status: 400 }
+    );
+  }
 
   let query = supabase
     .from('predios')
@@ -64,10 +76,10 @@ export async function GET(request: NextRequest) {
   });
 
   const total = count || 0;
-  return NextResponse.json({
+  return withCacheHeaders({
     predios,
     total,
     page,
     pages: Math.ceil(total / limit),
-  });
+  }, 60);
 }

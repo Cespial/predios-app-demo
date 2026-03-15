@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { applyRateLimit, withCacheHeaders } from '@/lib/api-helpers';
+import { isValidUUID } from '@/lib/validate';
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = applyRateLimit(request);
+  if (limited) return limited;
+
   const { id } = await params;
+
+  if (!isValidUUID(id)) {
+    return NextResponse.json(
+      { error: 'ID de predio no válido' },
+      { status: 400 }
+    );
+  }
 
   const [predioRes, generadoresRes, parqueaderosRes, fichaRes, normativaRes] =
     await Promise.all([
@@ -68,7 +80,7 @@ export async function GET(
     }
   }
 
-  return NextResponse.json({
+  return withCacheHeaders({
     ...predio,
     centroide_lat: centroide?.coordinates?.[1] ?? null,
     centroide_lng: centroide?.coordinates?.[0] ?? null,
@@ -79,5 +91,5 @@ export async function GET(
     normativa: normativaRes.data || [],
     deficit,
     generando_ficha: !ficha,
-  });
+  }, 30);
 }
