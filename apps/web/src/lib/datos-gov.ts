@@ -7,7 +7,9 @@
  */
 
 const BASE_URL = 'https://www.datos.gov.co/resource';
-const APP_TOKEN = process.env.DATOS_GOV_APP_TOKEN || '';
+// datos.gov.co app token (optional — increases rate limit from 1000 to unlimited/hr)
+// Leave empty to use public access (sufficient for demo)
+const APP_TOKEN = ''; // process.env.DATOS_GOV_APP_TOKEN || '';
 
 interface SocrataQueryParams {
   $where?: string;
