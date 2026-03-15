@@ -67,10 +67,10 @@ export async function GET(
 
   const ficha = fichaRes.data?.[0] || null;
 
-  // Calculate deficit
-  let deficit = { total_generadores: 0, aforo_total: 0, capacidad_parqueaderos: 0, cajones_deficit: 0 };
+  // Calculate deficit using per-type demand factors
+  let deficit = { total_generadores: 0, aforo_total: 0, demanda_ponderada: 0, capacidad_parqueaderos: 0, cajones_deficit: 0 };
   if (centroide) {
-    const { data: deficitData } = await supabase.rpc('deficit_parqueaderos', {
+    const { data: deficitData } = await supabase.rpc('deficit_parqueaderos_v2', {
       lat: centroide.coordinates[1],
       lng: centroide.coordinates[0],
       radio_metros: 1000,
