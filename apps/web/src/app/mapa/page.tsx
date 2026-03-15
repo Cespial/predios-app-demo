@@ -365,10 +365,7 @@ function GoogleMapView({
               key={`p-${m.id}`}
               position={{ lat: m.lat, lng: m.lng }}
               title={`${m.nombre} (Score: ${m.score})`}
-              icon={{
-                url: `https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|${scoreMarkerColor(m.score ?? 0)}`,
-                scaledSize: { width: 28, height: 42, equals: () => false } as google.maps.Size,
-              }}
+              icon={`https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|${scoreMarkerColor(m.score ?? 0)}`}
               onClick={() => {
                 setSelectedMarker(m);
                 onPredioClick({
@@ -390,10 +387,7 @@ function GoogleMapView({
               key={`g-${m.id}`}
               position={{ lat: m.lat, lng: m.lng }}
               title={`${m.nombre} (${m.tipo})`}
-              icon={{
-                url: `https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|a78bfa`,
-                scaledSize: { width: 22, height: 34, equals: () => false } as google.maps.Size,
-              }}
+              icon="https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|a78bfa"
             />
           ))}
 
@@ -404,10 +398,7 @@ function GoogleMapView({
               key={`pk-${m.id}`}
               position={{ lat: m.lat, lng: m.lng }}
               title={`${m.nombre} (${m.capacidad} cajones)`}
-              icon={{
-                url: `https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|38bdf8`,
-                scaledSize: { width: 20, height: 30, equals: () => false } as google.maps.Size,
-              }}
+              icon="https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=P|38bdf8|000000"
             />
           ))}
 
