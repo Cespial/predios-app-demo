@@ -1,6 +1,7 @@
 // use server — this module runs only on the server (API routes / server actions)
 
 import Anthropic from '@anthropic-ai/sdk';
+import * as Sentry from '@sentry/nextjs';
 
 let client: Anthropic | null = null;
 
@@ -210,6 +211,7 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin backticks) con esta 
 
       // Only retry on transient / rate-limit errors
       if (!isRetryable(error)) {
+        Sentry.captureException(error, { extra: { predio: predio.nombre, attempt } });
         throw new Error(
           `Non-retryable API error for predio "${predio.nombre}": ${describeError(error)}`
         );
