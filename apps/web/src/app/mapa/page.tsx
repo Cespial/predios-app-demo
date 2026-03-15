@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { APIProvider, Map as GoogleMap, Marker, InfoWindow } from '@vis.gl/react-google-maps';
 import { useRouter } from 'next/navigation';
 import {
@@ -218,7 +218,7 @@ const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
 ];
 
 function scoreMarkerColor(score: number): string {
-  if (score >= 80) return '22c55e';
+  if (score >= 80) return '10b981';
   if (score >= 60) return 'eab308';
   if (score >= 40) return 'f97316';
   return 'ef4444';
@@ -312,6 +312,14 @@ function GoogleMapView({
       .catch(() => {});
   }, [ciudad]);
 
+  const center = useMemo(
+    () =>
+      ciudad
+        ? { lat: ciudad.lat, lng: ciudad.lng }
+        : { lat: 6.25, lng: -75.56 },
+    [ciudad]
+  );
+
   if (!ciudad) {
     return (
       <div className="flex-1 flex items-center justify-center bg-zinc-950">
@@ -337,11 +345,17 @@ function GoogleMapView({
   return (
     <APIProvider apiKey={apiKey}>
       <GoogleMap
-        defaultCenter={{ lat: ciudad.lat, lng: ciudad.lng }}
+        defaultCenter={center}
+        center={center}
         defaultZoom={13}
+        zoom={13}
         styles={DARK_MAP_STYLES}
         gestureHandling="greedy"
         disableDefaultUI={false}
+        zoomControl={true}
+        mapTypeControl={false}
+        streetViewControl={false}
+        fullscreenControl={false}
         className="w-full h-full min-h-[500px]"
       >
         {/* Predios markers */}
@@ -353,7 +367,7 @@ function GoogleMapView({
               title={`${m.nombre} (Score: ${m.score})`}
               icon={{
                 url: `https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|${scoreMarkerColor(m.score ?? 0)}`,
-                scaledSize: new google.maps.Size(28, 42),
+                scaledSize: { width: 28, height: 42, equals: () => false } as google.maps.Size,
               }}
               onClick={() => {
                 setSelectedMarker(m);
@@ -378,7 +392,7 @@ function GoogleMapView({
               title={`${m.nombre} (${m.tipo})`}
               icon={{
                 url: `https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|a78bfa`,
-                scaledSize: new google.maps.Size(22, 34),
+                scaledSize: { width: 22, height: 34, equals: () => false } as google.maps.Size,
               }}
             />
           ))}
@@ -391,8 +405,8 @@ function GoogleMapView({
               position={{ lat: m.lat, lng: m.lng }}
               title={`${m.nombre} (${m.capacidad} cajones)`}
               icon={{
-                url: `https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=P|38bdf8|000000`,
-                scaledSize: new google.maps.Size(20, 30),
+                url: `https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|38bdf8`,
+                scaledSize: { width: 20, height: 30, equals: () => false } as google.maps.Size,
               }}
             />
           ))}
@@ -403,10 +417,22 @@ function GoogleMapView({
             position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
             onCloseClick={() => setSelectedMarker(null)}
           >
-            <div style={{ color: '#18181b', padding: 4 }}>
-              <strong>{selectedMarker.nombre}</strong>
-              {selectedMarker.score !== undefined && (
-                <div style={{ fontSize: 12 }}>Score: {selectedMarker.score}</div>
+            <div className="p-1">
+              <h3 className="font-semibold text-sm text-gray-900">
+                {selectedMarker.nombre}
+              </h3>
+              <p className="text-xs text-gray-600 mt-1">
+                Score: <strong>{selectedMarker.score ?? 'N/A'}</strong>
+              </p>
+              {selectedMarker.area_m2 != null && (
+                <p className="text-xs text-gray-600">
+                  Area: {fmt.format(selectedMarker.area_m2)} m2
+                </p>
+              )}
+              {selectedMarker.propietario && (
+                <p className="text-xs text-gray-600">
+                  {selectedMarker.propietario}
+                </p>
               )}
             </div>
           </InfoWindow>
