@@ -1,6 +1,6 @@
 -- Enable extensions
 CREATE EXTENSION IF NOT EXISTS postgis;
-CREATE EXTENSION IF NOT EXISTS pgvector;
+-- CREATE EXTENSION IF NOT EXISTS pgvector; -- Not available on this Supabase plan
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- Ciudades
@@ -37,7 +37,7 @@ CREATE TABLE predios (
   cajones_estimados INTEGER,
   fuente TEXT,
   metadata JSONB,
-  embedding vector(1536),
+  -- embedding vector(1536), -- Requires pgvector extension
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -104,6 +104,6 @@ CREATE INDEX predios_geom_idx ON predios USING GIST(geom);
 CREATE INDEX predios_centroide_idx ON predios USING GIST(centroide);
 CREATE INDEX generadores_geom_idx ON generadores_demanda USING GIST(geom);
 CREATE INDEX parqueaderos_geom_idx ON parqueaderos_existentes USING GIST(geom);
-CREATE INDEX predios_embedding_idx ON predios USING ivfflat (embedding vector_cosine_ops);
+-- CREATE INDEX predios_embedding_idx ON predios USING ivfflat (embedding vector_cosine_ops);
 CREATE INDEX predios_ciudad_idx ON predios(ciudad_id);
 CREATE INDEX predios_score_idx ON predios(score_total DESC);
