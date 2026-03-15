@@ -8,14 +8,14 @@ const nextConfig = {
       { protocol: 'https', hostname: 'maps.googleapis.com' },
     ],
   },
-  // Suppress Sentry source map upload warnings when no auth token
-  sentry: {
-    hideSourceMaps: true,
+  experimental: {
+    instrumentationHook: true,
   },
 };
 
 const sentryConfig = {
-  silent: true, // Don't log Sentry build plugin output
+  silent: true,
+  hideSourceMaps: true,
   disableServerWebpackPlugin: !process.env.SENTRY_AUTH_TOKEN,
   disableClientWebpackPlugin: !process.env.SENTRY_AUTH_TOKEN,
 };
