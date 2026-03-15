@@ -524,7 +524,7 @@ export default function MapaPage() {
             data.parqueaderos_cercanos || []
           ).reduce(
             (sum: number, p: { capacidad: number }) =>
-              sum + (p.capacidad || 0),
+              sum + (p.capacidad ?? 0),
             0
           ),
           deficit: data.deficit?.cajones_deficit || 0,

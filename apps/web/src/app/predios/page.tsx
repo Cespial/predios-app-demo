@@ -330,7 +330,7 @@ export default function PrediosPage() {
       p.score_total > best.score_total ? p : best
     );
     const deficit = predios.reduce(
-      (sum, p) => sum + (p.cajones_estimados || 0),
+      (sum, p) => sum + (p.cajones_estimados ?? 0),
       0
     );
     return {
