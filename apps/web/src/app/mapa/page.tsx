@@ -1,7 +1,7 @@
 'use client';
 
-import 'mapbox-gl/dist/mapbox-gl.css';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { APIProvider, Map as GoogleMap, Marker, InfoWindow } from '@vis.gl/react-google-maps';
 import { useRouter } from 'next/navigation';
 import {
   Search,
@@ -205,8 +205,41 @@ function DeficitIndicador({ deficit }: { deficit: number }) {
   );
 }
 
-/* ── MapboxMapa ── */
-function MapboxMapa({
+/* ── Google Maps dark theme styles ── */
+const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
+  { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
+  { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#283d6a' }] },
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#2f3948' }] },
+];
+
+function scoreMarkerColor(score: number): string {
+  if (score >= 80) return '22c55e';
+  if (score >= 60) return 'eab308';
+  if (score >= 40) return 'f97316';
+  return 'ef4444';
+}
+
+interface MarkerData {
+  id: string;
+  lat: number;
+  lng: number;
+  nombre: string;
+  score?: number;
+  area_m2?: number;
+  cajones?: number;
+  propietario?: string;
+  tipo?: string;
+  aforo?: number;
+  capacidad?: number;
+}
+
+/* ── GoogleMapView ── */
+function GoogleMapView({
   ciudad,
   capasVisibles,
   onPredioClick,
@@ -220,159 +253,64 @@ function MapboxMapa({
   };
   onPredioClick: (predio: Predio) => void;
 }) {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
+  const [prediosMarkers, setPrediosMarkers] = useState<MarkerData[]>([]);
+  const [generadoresMarkers, setGeneradoresMarkers] = useState<MarkerData[]>([]);
+  const [parqueaderosMarkers, setParqueaderosMarkers] = useState<MarkerData[]>([]);
+  const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
 
   useEffect(() => {
-    if (!mapContainer.current || !ciudad) return;
-    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-    if (!token) return;
+    if (!ciudad) return;
+    fetch(`/api/mapa?ciudad=${encodeURIComponent(ciudad.nombre)}`)
+      .then((r) => r.json())
+      .then((data: MapaGeoJSON) => {
+        const extractCoords = (f: GeoJSON.Feature): [number, number] | null => {
+          const g = f.geometry;
+          if (!g) return null;
+          if (g.type === 'Point') return [g.coordinates[1], g.coordinates[0]];
+          if (g.type === 'Polygon') {
+            const coords = g.coordinates[0];
+            const lat = coords.reduce((s, c) => s + c[1], 0) / coords.length;
+            const lng = coords.reduce((s, c) => s + c[0], 0) / coords.length;
+            return [lat, lng];
+          }
+          return null;
+        };
 
-    import('mapbox-gl').then((mapboxgl) => {
-      mapboxgl.default.accessToken = token;
+        setPrediosMarkers(
+          (data.predios?.features || [])
+            .map((f) => {
+              const c = extractCoords(f);
+              if (!c) return null;
+              const p = f.properties || {};
+              return { id: p.id, lat: c[0], lng: c[1], nombre: p.nombre, score: p.score, area_m2: p.area_m2, cajones: p.cajones, propietario: p.propietario };
+            })
+            .filter(Boolean) as MarkerData[]
+        );
 
-      if (mapRef.current) {
-        mapRef.current.flyTo({
-          center: [ciudad.lng, ciudad.lat],
-          zoom: 13,
-          duration: 1500,
-        });
-        return;
-      }
+        setGeneradoresMarkers(
+          (data.generadores?.features || [])
+            .map((f) => {
+              const c = extractCoords(f);
+              if (!c) return null;
+              const p = f.properties || {};
+              return { id: p.id, lat: c[0], lng: c[1], nombre: p.nombre, tipo: p.tipo, aforo: p.aforo };
+            })
+            .filter(Boolean) as MarkerData[]
+        );
 
-      const map = new mapboxgl.default.Map({
-        container: mapContainer.current!,
-        style: 'mapbox://styles/mapbox/dark-v11',
-        center: [ciudad.lng, ciudad.lat],
-        zoom: 13,
-      });
-
-      map.addControl(new mapboxgl.default.NavigationControl(), 'bottom-right');
-
-      map.on('load', async () => {
-        setMapLoaded(true);
-
-        try {
-          const res = await fetch(
-            `/api/mapa?ciudad=${encodeURIComponent(ciudad.nombre)}`
-          );
-          if (!res.ok) return;
-          const data: MapaGeoJSON = await res.json();
-
-          map.addSource('predios', { type: 'geojson', data: data.predios });
-          map.addLayer({
-            id: 'predios-fill',
-            type: 'circle',
-            source: 'predios',
-            paint: {
-              'circle-radius': 8,
-              'circle-color': [
-                'interpolate',
-                ['linear'],
-                ['get', 'score'],
-                0,
-                '#ef4444',
-                40,
-                '#f97316',
-                60,
-                '#eab308',
-                80,
-                '#22c55e',
-              ],
-              'circle-opacity': 0.8,
-              'circle-stroke-width': 2,
-              'circle-stroke-color': '#18181b',
-            },
-          });
-
-          map.addSource('generadores', {
-            type: 'geojson',
-            data: data.generadores,
-          });
-          map.addLayer({
-            id: 'generadores-circle',
-            type: 'circle',
-            source: 'generadores',
-            paint: {
-              'circle-radius': 6,
-              'circle-color': '#a78bfa',
-              'circle-opacity': 0.7,
-              'circle-stroke-width': 1,
-              'circle-stroke-color': '#18181b',
-            },
-          });
-
-          map.addSource('parqueaderos', {
-            type: 'geojson',
-            data: data.parqueaderos,
-          });
-          map.addLayer({
-            id: 'parqueaderos-circle',
-            type: 'circle',
-            source: 'parqueaderos',
-            paint: {
-              'circle-radius': 5,
-              'circle-color': '#38bdf8',
-              'circle-opacity': 0.7,
-              'circle-stroke-width': 1,
-              'circle-stroke-color': '#18181b',
-            },
-          });
-
-          map.on('click', 'predios-fill', (e) => {
-            if (e.features && e.features[0]) {
-              const props = e.features[0].properties;
-              if (props) {
-                onPredioClick({
-                  id: props.id,
-                  nombre: props.nombre,
-                  score_total: props.score,
-                  area_m2: props.area_m2,
-                  cajones_estimados: props.cajones,
-                  propietario: props.propietario,
-                } as Predio);
-              }
-            }
-          });
-
-          map.on('mouseenter', 'predios-fill', () => {
-            map.getCanvas().style.cursor = 'pointer';
-          });
-          map.on('mouseleave', 'predios-fill', () => {
-            map.getCanvas().style.cursor = '';
-          });
-        } catch {
-          // silently fail
-        }
-      });
-
-      mapRef.current = map;
-    });
-  }, [ciudad, onPredioClick]);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-    const layerMap: Record<string, string[]> = {
-      predios: ['predios-fill'],
-      generadores: ['generadores-circle'],
-      parqueaderos: ['parqueaderos-circle'],
-    };
-    Object.entries(capasVisibles).forEach(([key, visible]) => {
-      const layers = layerMap[key];
-      if (!layers) return;
-      layers.forEach((layerId) => {
-        if (map.getLayer(layerId)) {
-          map.setLayoutProperty(
-            layerId,
-            'visibility',
-            visible ? 'visible' : 'none'
-          );
-        }
-      });
-    });
-  }, [capasVisibles, mapLoaded]);
+        setParqueaderosMarkers(
+          (data.parqueaderos?.features || [])
+            .map((f) => {
+              const c = extractCoords(f);
+              if (!c) return null;
+              const p = f.properties || {};
+              return { id: p.id, lat: c[0], lng: c[1], nombre: p.nombre, capacidad: p.capacidad };
+            })
+            .filter(Boolean) as MarkerData[]
+        );
+      })
+      .catch(() => {});
+  }, [ciudad]);
 
   if (!ciudad) {
     return (
@@ -387,7 +325,95 @@ function MapboxMapa({
     );
   }
 
-  return <div ref={mapContainer} className="flex-1 w-full h-full min-h-[500px]" />;
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
+  if (!apiKey) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-zinc-950">
+        <p className="text-zinc-500 text-sm">Google Maps API key no configurada</p>
+      </div>
+    );
+  }
+
+  return (
+    <APIProvider apiKey={apiKey}>
+      <GoogleMap
+        defaultCenter={{ lat: ciudad.lat, lng: ciudad.lng }}
+        defaultZoom={13}
+        styles={DARK_MAP_STYLES}
+        gestureHandling="greedy"
+        disableDefaultUI={false}
+        className="w-full h-full min-h-[500px]"
+      >
+        {/* Predios markers */}
+        {capasVisibles.predios &&
+          prediosMarkers.map((m) => (
+            <Marker
+              key={`p-${m.id}`}
+              position={{ lat: m.lat, lng: m.lng }}
+              title={`${m.nombre} (Score: ${m.score})`}
+              icon={{
+                url: `https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|${scoreMarkerColor(m.score ?? 0)}`,
+                scaledSize: new google.maps.Size(28, 42),
+              }}
+              onClick={() => {
+                setSelectedMarker(m);
+                onPredioClick({
+                  id: m.id,
+                  nombre: m.nombre,
+                  score_total: m.score ?? 0,
+                  area_m2: m.area_m2 ?? 0,
+                  cajones_estimados: m.cajones ?? 0,
+                  propietario: m.propietario ?? '',
+                } as Predio);
+              }}
+            />
+          ))}
+
+        {/* Generadores markers */}
+        {capasVisibles.generadores &&
+          generadoresMarkers.map((m) => (
+            <Marker
+              key={`g-${m.id}`}
+              position={{ lat: m.lat, lng: m.lng }}
+              title={`${m.nombre} (${m.tipo})`}
+              icon={{
+                url: `https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|a78bfa`,
+                scaledSize: new google.maps.Size(22, 34),
+              }}
+            />
+          ))}
+
+        {/* Parqueaderos markers */}
+        {capasVisibles.parqueaderos &&
+          parqueaderosMarkers.map((m) => (
+            <Marker
+              key={`pk-${m.id}`}
+              position={{ lat: m.lat, lng: m.lng }}
+              title={`${m.nombre} (${m.capacidad} cajones)`}
+              icon={{
+                url: `https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=P|38bdf8|000000`,
+                scaledSize: new google.maps.Size(20, 30),
+              }}
+            />
+          ))}
+
+        {/* InfoWindow for selected marker */}
+        {selectedMarker && (
+          <InfoWindow
+            position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
+            onCloseClick={() => setSelectedMarker(null)}
+          >
+            <div style={{ color: '#18181b', padding: 4 }}>
+              <strong>{selectedMarker.nombre}</strong>
+              {selectedMarker.score !== undefined && (
+                <div style={{ fontSize: 12 }}>Score: {selectedMarker.score}</div>
+              )}
+            </div>
+          </InfoWindow>
+        )}
+      </GoogleMap>
+    </APIProvider>
+  );
 }
 
 /* ── PDFButton ── */
@@ -672,7 +698,7 @@ export default function MapaPage() {
 
       {/* ── CENTER MAP ── */}
       <div className="flex-1 relative">
-        <MapboxMapa
+        <GoogleMapView
           ciudad={ciudadActiva}
           capasVisibles={capasVisibles}
           onPredioClick={handlePredioClick}

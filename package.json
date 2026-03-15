@@ -5,5 +5,8 @@
     "@vitejs/plugin-react": "^6.0.1",
     "jsdom": "^29.0.0",
     "vitest": "^4.1.0"
+  },
+  "dependencies": {
+    "@vis.gl/react-google-maps": "^1.7.1"
   }
 }

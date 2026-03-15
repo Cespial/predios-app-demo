@@ -6,21 +6,20 @@ body {
   @apply bg-zinc-950 text-zinc-100;
 }
 
-/* Mapbox overrides for dark theme */
-.mapboxgl-popup-content {
-  @apply bg-zinc-800 text-zinc-100 rounded-lg shadow-xl border border-zinc-700 !important;
+/* Google Maps InfoWindow overrides */
+.gm-style .gm-style-iw-c {
+  background-color: #27272a !important;
+  border: 1px solid #3f3f46 !important;
+  border-radius: 12px !important;
+  padding: 0 !important;
 }
 
-.mapboxgl-popup-tip {
-  border-top-color: rgb(39 39 42) !important;
+.gm-style .gm-style-iw-d {
+  overflow: auto !important;
 }
 
-.mapboxgl-ctrl-group {
-  @apply bg-zinc-800 border-zinc-700 !important;
-}
-
-.mapboxgl-ctrl-group button {
-  @apply text-zinc-300 !important;
+.gm-style .gm-style-iw-tc::after {
+  background-color: #27272a !important;
 }
 
 /* Custom scrollbar */

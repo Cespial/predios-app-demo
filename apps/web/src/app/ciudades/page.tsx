@@ -21,7 +21,7 @@ import {
 import type { Ciudad, Predio } from '@/types';
 
 const fmt = new Intl.NumberFormat('es-CO');
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+const GOOGLE_MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
 
 interface CiudadExtended extends Ciudad {
   top_predio_nombre?: string;
@@ -154,11 +154,11 @@ export default function CiudadesPage() {
             className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden hover:border-zinc-700 transition-colors"
           >
             {/* Static Map Image */}
-            {ciudad.lat && ciudad.lng && MAPBOX_TOKEN ? (
+            {ciudad.lat && ciudad.lng && GOOGLE_MAPS_KEY ? (
               <div className="h-[200px] relative">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={`https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/${ciudad.lng},${ciudad.lat},11,0/300x200@2x?access_token=${MAPBOX_TOKEN}`}
+                  src={`https://maps.googleapis.com/maps/api/staticmap?center=${ciudad.lat},${ciudad.lng}&zoom=11&size=600x400&scale=2&maptype=roadmap&style=element:geometry%7Ccolor:0x242f3e&style=element:labels.text.fill%7Ccolor:0x746855&style=element:labels.text.stroke%7Ccolor:0x242f3e&style=feature:water%7Celement:geometry%7Ccolor:0x17263c&style=feature:road%7Celement:geometry%7Ccolor:0x38414e&key=${GOOGLE_MAPS_KEY}`}
                   alt={`Mapa de ${ciudad.nombre}`}
                   className="w-full h-full object-cover"
                   loading="lazy"

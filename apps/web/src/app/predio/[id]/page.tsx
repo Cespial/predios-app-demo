@@ -1,7 +1,7 @@
 'use client';
 
-import 'mapbox-gl/dist/mapbox-gl.css';
 import { useState, useEffect, useRef } from 'react';
+import { APIProvider, Map as GoogleMap, Marker, useMap } from '@vis.gl/react-google-maps';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft,
@@ -418,164 +418,58 @@ function ChecklistNormativo({ items }: { items: NormativaItem[] }) {
   );
 }
 
-/* ── MapboxMapa (detail version) ── */
-function DetailMap({ predio }: { predio: PredioDetalle }) {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
+/* ── Dark map style for Google Maps ── */
+const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
+  { elementType: 'geometry', stylers: [{ color: '#212121' }] },
+  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#757575' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#212121' }] },
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#757575' }] },
+  { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#181818' }] },
+  { featureType: 'road', elementType: 'geometry.fill', stylers: [{ color: '#2c2c2c' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212121' }] },
+  { featureType: 'road.highway', elementType: 'geometry.fill', stylers: [{ color: '#3c3c3c' }] },
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#2f3948' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] },
+];
+
+/* ── Concentric circles drawn via useMap + google.maps.Circle ── */
+function DetailMapCircles({ lat, lng }: { lat: number; lng: number }) {
+  const map = useMap();
+  const circlesRef = useRef<google.maps.Circle[]>([]);
 
   useEffect(() => {
-    if (!mapContainer.current) return;
-    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-    if (!token || !predio.centroide_lat || !predio.centroide_lng) return;
+    if (!map) return;
 
-    import('mapbox-gl').then((mapboxgl) => {
-      mapboxgl.default.accessToken = token;
+    // Clean up previous circles
+    circlesRef.current.forEach((c) => c.setMap(null));
+    circlesRef.current = [];
 
-      if (mapRef.current) return;
-
-      const map = new mapboxgl.default.Map({
-        container: mapContainer.current!,
-        style: 'mapbox://styles/mapbox/dark-v11',
-        center: [predio.centroide_lng, predio.centroide_lat],
-        zoom: 15,
+    const colors = ['#34d399', '#fbbf24', '#f87171'];
+    [300, 500, 1000].forEach((radius, i) => {
+      const circle = new google.maps.Circle({
+        map,
+        center: { lat, lng },
+        radius,
+        strokeColor: colors[i],
+        strokeWeight: 1.5,
+        strokeOpacity: 0.5,
+        fillOpacity: 0,
       });
-
-      map.addControl(new mapboxgl.default.NavigationControl(), 'bottom-right');
-
-      map.on('load', () => {
-        const center: [number, number] = [predio.centroide_lng, predio.centroide_lat];
-
-        // Concentric circles at 300m, 500m, 1km
-        [300, 500, 1000].forEach((radius, idx) => {
-          const points = 64;
-          const coords: [number, number][] = [];
-          for (let i = 0; i <= points; i++) {
-            const angle = (i / points) * 2 * Math.PI;
-            const dx = radius * Math.cos(angle);
-            const dy = radius * Math.sin(angle);
-            const lng =
-              center[0] + (dx / 111320) / Math.cos((center[1] * Math.PI) / 180);
-            const lat = center[1] + dy / 110540;
-            coords.push([lng, lat]);
-          }
-          map.addSource(`circle-${radius}`, {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              geometry: { type: 'LineString', coordinates: coords },
-              properties: {},
-            },
-          });
-          map.addLayer({
-            id: `circle-${radius}`,
-            type: 'line',
-            source: `circle-${radius}`,
-            paint: {
-              'line-color': ['#34d399', '#fbbf24', '#f87171'][idx],
-              'line-width': 1.5,
-              'line-dasharray': [4, 4],
-              'line-opacity': 0.5,
-            },
-          });
-        });
-
-        // Predio marker
-        if (predio.geom) {
-          map.addSource('predio', {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              geometry: predio.geom,
-              properties: { nombre: predio.nombre },
-            },
-          });
-          map.addLayer({
-            id: 'predio-fill',
-            type: 'circle',
-            source: 'predio',
-            paint: {
-              'circle-radius': 10,
-              'circle-color': '#10b981',
-              'circle-opacity': 0.8,
-              'circle-stroke-width': 3,
-              'circle-stroke-color': '#fff',
-            },
-          });
-        } else {
-          new mapboxgl.default.Marker({ color: '#10b981' })
-            .setLngLat(center)
-            .addTo(map);
-        }
-
-        // Generadores
-        if (predio.generadores_cercanos?.length) {
-          const features = predio.generadores_cercanos
-            .filter((g) => g.lat && g.lng)
-            .map((g) => ({
-              type: 'Feature' as const,
-              geometry: {
-                type: 'Point' as const,
-                coordinates: [g.lng, g.lat],
-              },
-              properties: { nombre: g.nombre, tipo: g.tipo },
-            }));
-          if (features.length > 0) {
-            map.addSource('generadores', {
-              type: 'geojson',
-              data: { type: 'FeatureCollection', features },
-            });
-            map.addLayer({
-              id: 'generadores-circle',
-              type: 'circle',
-              source: 'generadores',
-              paint: {
-                'circle-radius': 6,
-                'circle-color': '#a78bfa',
-                'circle-opacity': 0.7,
-                'circle-stroke-width': 1,
-                'circle-stroke-color': '#18181b',
-              },
-            });
-          }
-        }
-
-        // Parqueaderos
-        if (predio.parqueaderos_cercanos?.length) {
-          const features = predio.parqueaderos_cercanos
-            .filter((p) => p.lat && p.lng)
-            .map((p) => ({
-              type: 'Feature' as const,
-              geometry: {
-                type: 'Point' as const,
-                coordinates: [p.lng, p.lat],
-              },
-              properties: { nombre: p.nombre, capacidad: p.capacidad },
-            }));
-          if (features.length > 0) {
-            map.addSource('parqueaderos', {
-              type: 'geojson',
-              data: { type: 'FeatureCollection', features },
-            });
-            map.addLayer({
-              id: 'parqueaderos-circle',
-              type: 'circle',
-              source: 'parqueaderos',
-              paint: {
-                'circle-radius': 5,
-                'circle-color': '#38bdf8',
-                'circle-opacity': 0.7,
-                'circle-stroke-width': 1,
-                'circle-stroke-color': '#18181b',
-              },
-            });
-          }
-        }
-      });
-
-      mapRef.current = map;
+      circlesRef.current.push(circle);
     });
-  }, [predio]);
 
+    return () => {
+      circlesRef.current.forEach((c) => c.setMap(null));
+      circlesRef.current = [];
+    };
+  }, [map, lat, lng]);
+
+  return null;
+}
+
+/* ── Google Maps detail map ── */
+function DetailMap({ predio }: { predio: PredioDetalle }) {
   if (!predio.centroide_lat || !predio.centroide_lng) {
     return (
       <div className="h-96 bg-zinc-900 rounded-xl border border-zinc-800 flex items-center justify-center">
@@ -586,11 +480,76 @@ function DetailMap({ predio }: { predio: PredioDetalle }) {
     );
   }
 
+  const center = { lat: predio.centroide_lat, lng: predio.centroide_lng };
+
   return (
-    <div
-      ref={mapContainer}
-      className="h-96 rounded-xl overflow-hidden border border-zinc-800"
-    />
+    <div className="h-96 rounded-xl overflow-hidden border border-zinc-800">
+      <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY!}>
+        <GoogleMap
+          defaultCenter={center}
+          defaultZoom={15}
+          styles={DARK_MAP_STYLES}
+          disableDefaultUI={false}
+          gestureHandling="greedy"
+          style={{ width: '100%', height: '100%' }}
+        >
+          {/* Concentric radius circles */}
+          <DetailMapCircles lat={center.lat} lng={center.lng} />
+
+          {/* Predio marker (green) */}
+          <Marker
+            position={center}
+            title={predio.nombre}
+            icon={{
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 10,
+              fillColor: '#10b981',
+              fillOpacity: 0.8,
+              strokeColor: '#ffffff',
+              strokeWeight: 3,
+            }}
+          />
+
+          {/* Generadores markers (purple) */}
+          {predio.generadores_cercanos
+            ?.filter((g) => g.lat && g.lng)
+            .map((g) => (
+              <Marker
+                key={g.id}
+                position={{ lat: g.lat, lng: g.lng }}
+                title={`${g.nombre} (${g.tipo})`}
+                icon={{
+                  path: google.maps.SymbolPath.CIRCLE,
+                  scale: 6,
+                  fillColor: '#a78bfa',
+                  fillOpacity: 0.7,
+                  strokeColor: '#18181b',
+                  strokeWeight: 1,
+                }}
+              />
+            ))}
+
+          {/* Parqueaderos markers (blue) */}
+          {predio.parqueaderos_cercanos
+            ?.filter((p) => p.lat && p.lng)
+            .map((p) => (
+              <Marker
+                key={p.id || `park-${p.lat}-${p.lng}`}
+                position={{ lat: p.lat, lng: p.lng }}
+                title={p.nombre}
+                icon={{
+                  path: google.maps.SymbolPath.CIRCLE,
+                  scale: 5,
+                  fillColor: '#38bdf8',
+                  fillOpacity: 0.7,
+                  strokeColor: '#18181b',
+                  strokeWeight: 1,
+                }}
+              />
+            ))}
+        </GoogleMap>
+      </APIProvider>
+    </div>
   );
 }
 
