@@ -34,7 +34,7 @@ export function Sidebar() {
             collapsed ? "text-center w-full text-base" : ""
           }`}
         >
-          {collapsed ? "IN" : "INPLUX"}
+          {collapsed ? "T" : "tensor.lat"}
         </span>
       </div>
 

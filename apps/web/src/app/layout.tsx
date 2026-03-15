@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "INPLUX - Plataforma de Predios",
-  description: "Plataforma de análisis de predios para parqueaderos",
+  title: "tensor.lat — Identificador de Predios para Parqueaderos",
+  description: "Plataforma de análisis espacial para identificación de predios óptimos para parqueaderos en capitales colombianas",
 };
 
 export default function RootLayout({

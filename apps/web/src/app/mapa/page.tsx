@@ -1,5 +1,6 @@
 'use client';
 
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -386,7 +387,7 @@ function MapboxMapa({
     );
   }
 
-  return <div ref={mapContainer} className="flex-1 w-full h-full" />;
+  return <div ref={mapContainer} className="flex-1 w-full h-full min-h-[500px]" />;
 }
 
 /* ── PDFButton ── */
