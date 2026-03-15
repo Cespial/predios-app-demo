@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -11,6 +12,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "tensor.lat — Identificador de Predios para Parqueaderos",
   description: "Plataforma de análisis espacial para identificación de predios óptimos para parqueaderos en capitales colombianas",
+  openGraph: {
+    title: "tensor.lat — Identificador de Predios",
+    description: "Análisis espacial de predios para parqueaderos en Colombia",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -25,7 +31,9 @@ export default function RootLayout({
       >
         <div className="flex h-screen overflow-hidden">
           <Sidebar />
-          <main className="flex-1 overflow-auto">{children}</main>
+          <main className="flex-1 overflow-auto">
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </main>
         </div>
       </body>
     </html>
