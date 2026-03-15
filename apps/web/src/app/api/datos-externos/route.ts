@@ -13,9 +13,9 @@ import { queryDatosGov } from '@/lib/datos-gov';
  *   tipo    – optional, one of 'inmuebles' | 'equipamientos' (default: 'inmuebles')
  */
 
-// --- Dataset IDs ---
-const DATASET_INMUEBLES = 'f2nk-6fgh'; // Inventario bienes inmuebles del estado
-const DATASET_EQUIPAMIENTOS = 'cg4i-x97b'; // Equipamientos urbanos
+// --- Dataset IDs (verified working on datos.gov.co) ---
+const DATASET_INMUEBLES = 'sbzv-2tci'; // Inventario de parques urbanos / predios públicos Bogotá
+const DATASET_EQUIPAMIENTOS = 'sbzv-2tci'; // Same dataset, filtered by uso_nivel_1
 
 // --- City → department mapping for upstream filtering ---
 const CIUDAD_DEPARTAMENTO: Record<string, string> = {
@@ -77,15 +77,15 @@ export async function GET(request: NextRequest) {
     if (tipo === 'inmuebles') {
       // Build SoQL $where clause – filter by department + municipality
       const whereClause = departamento
-        ? `upper(departamento) like '%${departamento}%' AND upper(municipio) like '%${ciudadUpper}%'`
-        : `upper(municipio) like '%${ciudadUpper}%'`;
+        ? `upper(departamento) like '%${departamento}%'`
+        : `upper(ciudad_municipio) like '%${ciudadUpper}%'`;
 
       const data = await queryDatosGov(DATASET_INMUEBLES, {
         $where: whereClause,
         $select:
-          'nombre_inmueble,direccion,area_terreno,entidad_propietaria,departamento,municipio',
+          'rupi,estado,destinacion,uso_nivel_1,uso_nivel_2,uso_especifico,nomenclatura_ubicacion,departamento,ciudad_municipio,localidades,barrios,area_certificada',
         $limit: 50,
-        $order: 'area_terreno DESC',
+        $order: 'area_certificada DESC',
       });
 
       return withCacheHeaders(
@@ -101,14 +101,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // tipo === 'equipamientos'
+    // tipo === 'equipamientos' — filter for recreational/institutional zones
     const whereClause = departamento
-      ? `upper(departamento) like '%${departamento}%' AND upper(municipio) like '%${ciudadUpper}%'`
-      : `upper(municipio) like '%${ciudadUpper}%'`;
+      ? `upper(departamento) like '%${departamento}%' AND uso_nivel_1 in ('ZONAS RECREATIVAS','EQUIPAMIENTOS')`
+      : `upper(ciudad_municipio) like '%${ciudadUpper}%' AND uso_nivel_1 in ('ZONAS RECREATIVAS','EQUIPAMIENTOS')`;
 
     const data = await queryDatosGov(DATASET_EQUIPAMIENTOS, {
       $where: whereClause,
+      $select: 'rupi,destinacion,uso_nivel_1,uso_nivel_2,uso_especifico,nomenclatura_ubicacion,localidades,barrios,area_certificada',
       $limit: 50,
+      $order: 'area_certificada DESC',
     });
 
     return withCacheHeaders(
