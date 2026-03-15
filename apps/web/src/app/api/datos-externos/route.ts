@@ -76,9 +76,10 @@ export async function GET(request: NextRequest) {
   try {
     if (tipo === 'inmuebles') {
       // Build SoQL $where clause – filter by department + municipality
+      // Use LIKE with % for flexible matching (handles accents, case)
       const whereClause = departamento
-        ? `upper(departamento) like '%${departamento}%'`
-        : `upper(ciudad_municipio) like '%${ciudadUpper}%'`;
+        ? `departamento like '%${departamento.slice(0, 4)}%'`
+        : `ciudad_municipio like '%${ciudadUpper.slice(0, 4)}%'`;
 
       const data = await queryDatosGov(DATASET_INMUEBLES, {
         $where: whereClause,
@@ -103,8 +104,8 @@ export async function GET(request: NextRequest) {
 
     // tipo === 'equipamientos' — filter for recreational/institutional zones
     const whereClause = departamento
-      ? `upper(departamento) like '%${departamento}%' AND uso_nivel_1 in ('ZONAS RECREATIVAS','EQUIPAMIENTOS')`
-      : `upper(ciudad_municipio) like '%${ciudadUpper}%' AND uso_nivel_1 in ('ZONAS RECREATIVAS','EQUIPAMIENTOS')`;
+      ? `departamento like '%${departamento.slice(0, 4)}%' AND uso_nivel_1 in ('ZONAS RECREATIVAS','EQUIPAMIENTOS')`
+      : `ciudad_municipio like '%${ciudadUpper.slice(0, 4)}%' AND uso_nivel_1 in ('ZONAS RECREATIVAS','EQUIPAMIENTOS')`;
 
     const data = await queryDatosGov(DATASET_EQUIPAMIENTOS, {
       $where: whereClause,
