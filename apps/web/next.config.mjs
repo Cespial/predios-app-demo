@@ -4,10 +4,10 @@ import { withSentryConfig } from '@sentry/nextjs';
 const nextConfig = {
   images: {
     remotePatterns: [
-      { protocol: 'https', hostname: 'api.mapbox.com' },
       { protocol: 'https', hostname: 'maps.googleapis.com' },
     ],
   },
+  transpilePackages: ['@vis.gl/react-google-maps'],
   experimental: {
     instrumentationHook: true,
   },
