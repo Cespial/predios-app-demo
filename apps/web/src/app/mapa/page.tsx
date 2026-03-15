@@ -399,14 +399,11 @@ function PDFButton({ predioId }: { predioId: string }) {
     try {
       const res = await fetch(`/api/ficha-pdf/${predioId}`);
       if (!res.ok) throw new Error('Error al generar PDF');
-      const data = await res.json();
-      const blob = new Blob([JSON.stringify(data, null, 2)], {
-        type: 'application/json',
-      });
+      const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `ficha-${predioId}.json`;
+      a.download = `ficha-${predioId}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {

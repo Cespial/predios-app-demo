@@ -648,14 +648,11 @@ export default function PredioDetallePage() {
     try {
       const res = await fetch(`/api/ficha-pdf/${id}`);
       if (!res.ok) return;
-      const data = await res.json();
-      const blob = new Blob([JSON.stringify(data, null, 2)], {
-        type: 'application/json',
-      });
+      const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `ficha-${id}.json`;
+      a.download = `ficha-${id}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {
