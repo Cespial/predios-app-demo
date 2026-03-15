@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-zinc-950 text-zinc-100;
+}
+
+/* Mapbox overrides for dark theme */
+.mapboxgl-popup-content {
+  @apply bg-zinc-800 text-zinc-100 rounded-lg shadow-xl border border-zinc-700 !important;
+}
+
+.mapboxgl-popup-tip {
+  border-top-color: rgb(39 39 42) !important;
+}
+
+.mapboxgl-ctrl-group {
+  @apply bg-zinc-800 border-zinc-700 !important;
+}
+
+.mapboxgl-ctrl-group button {
+  @apply text-zinc-300 !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-zinc-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-zinc-700 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-zinc-600;
+}
