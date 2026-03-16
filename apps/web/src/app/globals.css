@@ -2,39 +2,175 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-zinc-950 text-zinc-100;
+/* ══════════════════════════════════════════════════════
+   tensor.lat — Observatory Design System
+   Aesthetic: Data Terminal / Cartographic Instrument
+   ══════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --color-tensor: #34d399;
+  --color-tensor-dim: #059669;
+  --color-tensor-glow: rgba(52, 211, 153, 0.15);
+  --color-surface: #0c0e11;
+  --color-surface-raised: #13161b;
+  --color-surface-overlay: #1a1e25;
+  --color-border: #1e2229;
+  --color-border-active: #2a3040;
+  --font-display: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
-/* Google Maps InfoWindow overrides */
+body {
+  background: var(--color-surface);
+  color: #c4c9d4;
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Atmospheric Background ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(52, 211, 153, 0.04), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(59, 130, 246, 0.03), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Grid Pattern Overlay ── */
+.grid-pattern {
+  background-image:
+    linear-gradient(rgba(52, 211, 153, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 211, 153, 0.03) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* ── Glow Effects ── */
+.glow-tensor {
+  box-shadow: 0 0 20px rgba(52, 211, 153, 0.08), 0 0 60px rgba(52, 211, 153, 0.04);
+}
+
+.glow-text {
+  text-shadow: 0 0 30px rgba(52, 211, 153, 0.3);
+}
+
+/* ── Card Styles ── */
+.card-observatory {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-observatory:hover {
+  border-color: var(--color-border-active);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(52, 211, 153, 0.05);
+  transform: translateY(-1px);
+}
+
+/* ── Score Indicator ── */
+.score-ring {
+  background: conic-gradient(
+    var(--score-color) calc(var(--score-pct) * 3.6deg),
+    rgba(255, 255, 255, 0.06) 0deg
+  );
+  border-radius: 50%;
+  padding: 3px;
+}
+
+.score-ring-inner {
+  background: var(--color-surface-raised);
+  border-radius: 50%;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Animated Entry ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(52, 211, 153, 0.4); }
+  50% { box-shadow: 0 0 12px rgba(52, 211, 153, 0.7); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-slide-in {
+  animation: slideInLeft 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.pulse-dot {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ── Stagger Delays ── */
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--color-surface); }
+::-webkit-scrollbar-thumb { background: var(--color-border-active); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #3a4050; }
+
+/* ── Google Maps Overrides ── */
 .gm-style .gm-style-iw-c {
-  background-color: #27272a !important;
-  border: 1px solid #3f3f46 !important;
+  background-color: var(--color-surface-overlay) !important;
+  border: 1px solid var(--color-border-active) !important;
   border-radius: 12px !important;
   padding: 0 !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+}
+.gm-style .gm-style-iw-d { overflow: auto !important; }
+.gm-style .gm-style-iw-tc::after { background-color: var(--color-surface-overlay) !important; }
+
+/* ── Typography Utilities ── */
+.font-mono { font-family: var(--font-mono); }
+.text-tensor { color: var(--color-tensor); }
+
+/* ── Metric Display ── */
+.metric-value {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
-.gm-style .gm-style-iw-d {
-  overflow: auto !important;
-}
-
-.gm-style .gm-style-iw-tc::after {
-  background-color: #27272a !important;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-zinc-900;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-zinc-700 rounded-full;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-zinc-600;
+/* ── Separator Line ── */
+.separator-glow {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-tensor), transparent);
+  opacity: 0.3;
 }

@@ -16,8 +16,8 @@ import {
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/mapa", label: "Mapa", icon: Map },
-  { href: "/predios", label: "Predios", icon: Building2 },
+  { href: "/mapa", label: "Explorador", icon: Map },
+  { href: "/predios", label: "Ranking", icon: Building2 },
   { href: "/ciudades", label: "Ciudades", icon: LayoutGrid },
 ];
 
@@ -28,41 +28,35 @@ export function Sidebar() {
 
   const navContent = (
     <>
-      {/* Logo area */}
+      {/* Logo */}
       <div className="shrink-0">
-        <div className="flex items-center h-14 px-4">
-          <div
-            className={`flex items-center gap-2 transition-all duration-300 ${
-              collapsed ? "justify-center w-full" : ""
-            }`}
-          >
-            <span className="block w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-            <span
-              className={`font-bold text-emerald-500 tracking-tight transition-all duration-300 ${
-                collapsed ? "hidden" : "text-2xl"
-              }`}
-            >
-              tensor.lat
-            </span>
+        <div className="flex items-center h-[56px] px-4">
+          <div className={`flex items-center gap-2.5 ${collapsed ? "justify-center w-full" : ""}`}>
+            <div className="w-2 h-2 rounded-full bg-emerald-400 pulse-dot shrink-0" />
+            {!collapsed && (
+              <div className="animate-fade-in">
+                <span className="text-xl font-bold text-tensor tracking-tight">tensor</span>
+                <span className="text-xl font-light text-zinc-500">.lat</span>
+              </div>
+            )}
           </div>
-          {/* Close button on mobile */}
           <button
             onClick={() => setMobileOpen(false)}
-            className="ml-auto md:hidden p-1 text-zinc-400 hover:text-zinc-200"
+            className="ml-auto md:hidden p-1 text-zinc-500 hover:text-zinc-300"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
         {!collapsed && (
-          <p className="px-4 pb-2 text-xs text-zinc-500">
+          <p className="px-4 pb-3 text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium">
             Inteligencia Territorial
           </p>
         )}
-        <div className="h-px bg-emerald-500/40" />
+        <div className="separator-glow mx-4" />
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 py-4 space-y-1 px-2">
+      {/* Nav */}
+      <nav className="flex-1 py-5 px-2.5 space-y-0.5">
         {navItems.map((item) => {
           const isActive =
             item.href === "/"
@@ -74,16 +68,20 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-200 ${
                 isActive
-                  ? "bg-emerald-500/10 text-emerald-400"
-                  : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+                  ? "bg-emerald-500/8 text-emerald-400"
+                  : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]"
               } ${collapsed ? "justify-center" : ""}`}
               title={collapsed ? item.label : undefined}
             >
+              {isActive && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-emerald-400" />
+              )}
               <Icon
-                size={20}
-                className={isActive ? "text-emerald-400" : "text-zinc-500"}
+                size={18}
+                strokeWidth={isActive ? 2 : 1.5}
+                className={isActive ? "text-emerald-400" : "text-zinc-600"}
               />
               {!collapsed && <span>{item.label}</span>}
             </Link>
@@ -91,39 +89,38 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Collapse Toggle (desktop only) */}
+      {/* Collapse */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="hidden md:flex items-center justify-center h-12 border-t border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors shrink-0"
-        aria-label={collapsed ? "Expandir sidebar" : "Colapsar sidebar"}
+        className="hidden md:flex items-center justify-center h-11 border-t border-[#1e2229] text-zinc-600 hover:text-zinc-400 transition-colors shrink-0"
       >
-        {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
       </button>
     </>
   );
 
   return (
     <>
-      {/* Mobile hamburger button */}
+      {/* Mobile trigger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="md:hidden fixed top-3 left-3 z-50 p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200"
-        aria-label="Abrir menu"
+        className="md:hidden fixed top-3 left-3 z-50 p-2.5 bg-[#13161b] border border-[#1e2229] rounded-lg text-zinc-500 hover:text-zinc-300"
+        aria-label="Abrir menú"
       >
-        <Menu size={20} />
+        <Menu size={18} />
       </button>
 
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          className="md:hidden fixed inset-0 z-40 bg-black/70 backdrop-blur-sm"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Mobile sidebar */}
       <aside
-        className={`md:hidden fixed inset-y-0 left-0 z-50 w-60 flex flex-col bg-zinc-900 border-r border-zinc-800 transition-transform duration-300 ${
+        className={`md:hidden fixed inset-y-0 left-0 z-50 w-56 flex flex-col bg-[#0c0e11] border-r border-[#1e2229] transition-transform duration-300 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -132,8 +129,8 @@ export function Sidebar() {
 
       {/* Desktop sidebar */}
       <aside
-        className={`hidden md:flex flex-col h-screen bg-zinc-900 border-r border-zinc-800 transition-all duration-300 ${
-          collapsed ? "w-16" : "w-60"
+        className={`hidden md:flex flex-col h-screen bg-[#0c0e11] border-r border-[#1e2229] transition-all duration-300 ${
+          collapsed ? "w-[52px]" : "w-56"
         }`}
       >
         {navContent}
