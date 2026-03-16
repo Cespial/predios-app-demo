@@ -751,6 +751,25 @@ export default function PredioDetallePage() {
         </div>
       </div>
 
+      {/* ── EXECUTIVE SUMMARY BANNER ── */}
+      <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20 rounded-xl p-5">
+        <div className="flex items-start gap-4">
+          <div className="p-2 bg-emerald-500/20 rounded-lg shrink-0">
+            <TrendingUp size={20} className="text-emerald-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-emerald-300 mb-1">Resumen para Toma de Decisión</h3>
+            <p className="text-sm text-zinc-300 leading-relaxed">
+              {predio.score_total >= 80
+                ? `Este predio presenta una oportunidad de alta viabilidad (score ${predio.score_total}/100). Con ${fmt.format(predio.area_m2)} m² disponibles, permite la instalación de aproximadamente ${predio.cajones_estimados} cajones de estacionamiento. Se recomienda avanzar con estudio de factibilidad detallado.`
+                : predio.score_total >= 60
+                ? `Este predio tiene viabilidad moderada (score ${predio.score_total}/100). El área de ${fmt.format(predio.area_m2)} m² es adecuada para ${predio.cajones_estimados} cajones, pero se identifican factores que requieren análisis adicional antes de proceder.`
+                : `Este predio requiere evaluación adicional (score ${predio.score_total}/100). Aunque cuenta con ${fmt.format(predio.area_m2)} m², factores de demanda, accesibilidad o restricciones normativas limitan su viabilidad inmediata.`}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* ── SECTION 2: MAP ── */}
       <DetailMap predio={predio} />
 

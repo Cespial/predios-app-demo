@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  LayoutDashboard,
   Map,
   Building2,
   LayoutGrid,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 
 const navItems = [
+  { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/mapa", label: "Mapa", icon: Map },
   { href: "/predios", label: "Predios", icon: Building2 },
   { href: "/ciudades", label: "Ciudades", icon: LayoutGrid },
@@ -26,29 +28,46 @@ export function Sidebar() {
 
   const navContent = (
     <>
-      {/* Logo */}
-      <div className="flex items-center h-14 px-4 border-b border-zinc-800 shrink-0">
-        <span
-          className={`font-bold text-emerald-500 text-xl tracking-tight transition-all duration-300 ${
-            collapsed ? "text-center w-full text-base" : ""
-          }`}
-        >
-          {collapsed ? "T" : "tensor.lat"}
-        </span>
-        {/* Close button on mobile */}
-        <button
-          onClick={() => setMobileOpen(false)}
-          className="ml-auto md:hidden p-1 text-zinc-400 hover:text-zinc-200"
-        >
-          <X size={18} />
-        </button>
+      {/* Logo area */}
+      <div className="shrink-0">
+        <div className="flex items-center h-14 px-4">
+          <div
+            className={`flex items-center gap-2 transition-all duration-300 ${
+              collapsed ? "justify-center w-full" : ""
+            }`}
+          >
+            <span className="block w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+            <span
+              className={`font-bold text-emerald-500 tracking-tight transition-all duration-300 ${
+                collapsed ? "hidden" : "text-2xl"
+              }`}
+            >
+              tensor.lat
+            </span>
+          </div>
+          {/* Close button on mobile */}
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="ml-auto md:hidden p-1 text-zinc-400 hover:text-zinc-200"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        {!collapsed && (
+          <p className="px-4 pb-2 text-xs text-zinc-500">
+            Inteligencia Territorial
+          </p>
+        )}
+        <div className="h-px bg-emerald-500/40" />
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 py-4 space-y-1 px-2">
         {navItems.map((item) => {
           const isActive =
-            pathname === item.href || pathname?.startsWith(item.href + "/");
+            item.href === "/"
+              ? pathname === "/"
+              : pathname === item.href || pathname?.startsWith(item.href + "/");
           const Icon = item.icon;
           return (
             <Link
@@ -89,7 +108,7 @@ export function Sidebar() {
       <button
         onClick={() => setMobileOpen(true)}
         className="md:hidden fixed top-3 left-3 z-50 p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200"
-        aria-label="Abrir menú"
+        aria-label="Abrir menu"
       >
         <Menu size={20} />
       </button>

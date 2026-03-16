@@ -142,9 +142,14 @@ export default function CiudadesPage() {
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-8">
       {/* Header */}
-      <h1 className="text-2xl font-bold text-zinc-100">
-        Comparativa de Ciudades
-      </h1>
+      <div>
+        <h1 className="text-2xl font-bold text-zinc-100">
+          Comparativa de Ciudades
+        </h1>
+        <p className="text-sm text-zinc-400 mt-1">
+          Análisis comparativo de déficit de estacionamiento y oportunidades de inversión por ciudad
+        </p>
+      </div>
 
       {/* City Cards - 2x2 Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

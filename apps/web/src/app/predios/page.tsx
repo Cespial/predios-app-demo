@@ -404,9 +404,12 @@ export default function PrediosPage() {
     <div className="p-4 sm:p-6 space-y-6 max-w-[1400px] mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-zinc-100">
-          Ranking de Predios
-        </h1>
+        <div>
+          <h1 className="text-2xl font-bold text-zinc-100">
+            Ranking de Oportunidades
+          </h1>
+          <p className="text-sm text-zinc-400 mt-1">Predios públicos ordenados por viabilidad para desarrollo de parqueaderos</p>
+        </div>
         <button
           onClick={handleExportCSV}
           disabled={predios.length === 0}

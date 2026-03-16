@@ -586,6 +586,10 @@ export default function MapaPage() {
     <div className="flex h-full overflow-hidden">
       {/* ── LEFT PANEL ── */}
       <div className="w-80 shrink-0 flex flex-col bg-zinc-900 border-r border-zinc-800 overflow-hidden">
+        <div className="p-3 border-b border-zinc-800">
+          <h1 className="text-sm font-semibold text-zinc-200">Explorador de Predios</h1>
+          <p className="text-xs text-zinc-500 mt-0.5">Selecciona una ciudad y filtra por criterios</p>
+        </div>
         <CiudadSelector
           ciudades={ciudades}
           ciudadActiva={ciudadActiva}

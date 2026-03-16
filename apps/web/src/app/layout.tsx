@@ -10,11 +10,23 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "tensor.lat — Identificador de Predios para Parqueaderos",
-  description: "Plataforma de análisis espacial para identificación de predios óptimos para parqueaderos en capitales colombianas",
+  title: "tensor.lat — Inteligencia Territorial para Parqueaderos",
+  description: "Plataforma de análisis espacial que identifica predios públicos óptimos para desarrollo de infraestructura de estacionamiento en capitales colombianas. Datos reales de datos.gov.co, Google Places y OpenStreetMap.",
+  keywords: [
+    "tensor.lat",
+    "inteligencia territorial",
+    "predios",
+    "parqueaderos",
+    "estacionamiento",
+    "Colombia",
+    "análisis espacial",
+    "datos.gov.co",
+    "catastro",
+    "urbanismo",
+  ],
   openGraph: {
-    title: "tensor.lat — Identificador de Predios",
-    description: "Análisis espacial de predios para parqueaderos en Colombia",
+    title: "tensor.lat — Inteligencia Territorial para Parqueaderos",
+    description: "Plataforma de análisis espacial que identifica predios públicos óptimos para desarrollo de infraestructura de estacionamiento en capitales colombianas.",
     type: "website",
   },
 };
