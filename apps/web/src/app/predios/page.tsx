@@ -207,7 +207,7 @@ function PreviewModal({
             </div>
             <div className="flex-1 space-y-1.5">
               <div className="flex justify-between text-xs">
-                <span className="text-zinc-400">Area</span>
+                <span className="text-zinc-400">Área</span>
                 <span className={scoreColor(predio.score_area)}>
                   {predio.score_area}
                 </span>
@@ -225,7 +225,7 @@ function PreviewModal({
                 </span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-zinc-400">Restricciones</span>
+                <span className="text-zinc-400">Viab. Legal</span>
                 <span className={scoreColor(predio.score_restricciones)}>
                   {predio.score_restricciones}
                 </span>
@@ -406,9 +406,9 @@ export default function PrediosPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-zinc-100">
-            Ranking de Oportunidades
+            Oportunidades de Inversión
           </h1>
-          <p className="text-sm text-zinc-400 mt-1">Predios públicos ordenados por viabilidad para desarrollo de parqueaderos</p>
+          <p className="text-sm text-zinc-400 mt-1">Lotes públicos ordenados por viabilidad para inversión en parqueaderos</p>
         </div>
         <button
           onClick={handleExportCSV}
@@ -424,20 +424,20 @@ export default function PrediosPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
           icon={Building2}
-          label="Total Predios"
+          label="Total Lotes"
           value={fmt.format(stats.total)}
           iconColor="bg-emerald-500/10 text-emerald-400"
         />
         <StatCard
           icon={Trophy}
-          label="Mayor Score"
+          label="Mayor Viabilidad"
           value={String(stats.topScore)}
           subtitle={stats.topName}
           iconColor="bg-yellow-500/10 text-yellow-400"
         />
         <StatCard
           icon={AlertTriangle}
-          label="Deficit Total Cajones"
+          label="Total Cajones Faltantes"
           value={fmt.format(stats.deficitTotal)}
           iconColor="bg-red-500/10 text-red-400"
         />
@@ -483,14 +483,14 @@ export default function PrediosPage() {
             <thead>
               <tr className="border-b border-zinc-800 bg-zinc-900/50">
                 {[
-                  { key: 'nombre', label: 'Predio' },
+                  { key: 'nombre', label: 'Lote' },
                   { key: 'ciudad_nombre', label: 'Ciudad' },
                   { key: 'propietario', label: 'Propietario' },
                   { key: 'area_m2', label: 'Area (m2)' },
-                  { key: 'score_total', label: 'Score Total' },
-                  { key: 'score_demanda', label: 'Score Demanda' },
+                  { key: 'score_total', label: 'Viabilidad' },
+                  { key: 'score_demanda', label: 'Demanda' },
                   { key: 'cajones_estimados', label: 'Cajones Est.' },
-                  { key: 'restricciones', label: 'Restricciones' },
+                  { key: 'restricciones', label: 'Viab. Legal' },
                   { key: 'acciones', label: 'Acciones' },
                 ].map((col) => (
                   <th
@@ -533,7 +533,7 @@ export default function PrediosPage() {
                       className="mx-auto text-zinc-600 mb-2"
                     />
                     <p className="text-zinc-500 text-sm">
-                      No se encontraron predios
+                      No se encontraron lotes
                     </p>
                   </td>
                 </tr>

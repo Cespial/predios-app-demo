@@ -107,21 +107,21 @@ export default function DashboardPage() {
             <span className="text-zinc-500 font-light">.lat</span>
           </h1>
           <p className="text-lg sm:text-xl text-zinc-400 max-w-2xl leading-relaxed font-light">
-            Inteligencia territorial para identificar predios públicos óptimos
-            para infraestructura de estacionamiento en Colombia.
+            Encuentre los mejores lotes públicos para construir parqueaderos
+            rentables en las principales ciudades de Colombia.
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
             <Link
               href="/mapa"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 text-sm font-medium hover:bg-emerald-500/20 transition-all"
             >
-              <Eye size={16} /> Explorar mapa
+              <Eye size={16} /> Ver mapa
             </Link>
             <Link
               href="/predios"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1a1e25] border border-[#2a3040] rounded-lg text-zinc-300 text-sm font-medium hover:border-zinc-600 transition-all"
             >
-              <Zap size={16} /> Ver ranking
+              <Zap size={16} /> Ver oportunidades
             </Link>
           </div>
         </header>
@@ -132,9 +132,9 @@ export default function DashboardPage() {
             {loading ? (
               [1,2,3,4].map(i => <Skeleton key={i} className="h-28" />)
             ) : [
-              { icon: BarChart3, label: 'Predios analizados', value: fmt.format(totalPredios), color: '#34d399' },
+              { icon: BarChart3, label: 'Lotes analizados', value: fmt.format(totalPredios), color: '#34d399' },
               { icon: TrendingUp, label: 'Oportunidades top', value: fmt.format(topCount), color: '#60a5fa' },
-              { icon: AlertTriangle, label: 'Déficit nacional', value: fmt.format(deficit), color: '#fbbf24' },
+              { icon: AlertTriangle, label: 'Estacionamientos faltantes', value: fmt.format(deficit), color: '#fbbf24' },
               { icon: MapPin, label: 'Ciudades', value: String(ciudades.length), color: '#c084fc' },
             ].map((kpi) => (
               <div key={kpi.label} className="card-observatory p-4 sm:p-5">
@@ -159,7 +159,7 @@ export default function DashboardPage() {
           <div className="flex items-end justify-between">
             <div>
               <h2 className="text-xl font-semibold text-zinc-100">Ciudades analizadas</h2>
-              <p className="text-sm text-zinc-500 mt-1">Déficit de estacionamiento por capital</p>
+              <p className="text-sm text-zinc-500 mt-1">Estacionamientos faltantes por capital</p>
             </div>
             <Link href="/ciudades" className="text-xs text-emerald-400/70 hover:text-emerald-400 flex items-center gap-1 transition-colors">
               Ver todas <ArrowRight size={12} />
@@ -189,13 +189,13 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="flex gap-6 text-xs text-zinc-500 mb-4 font-mono">
-                    <span>{fmt.format(c.total_predios)} predios</span>
-                    <span>{fmt.format(c.total_generadores)} gen.</span>
+                    <span>{fmt.format(c.total_predios)} lotes</span>
+                    <span>{fmt.format(c.total_generadores)} atractores</span>
                   </div>
 
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-xs">
-                      <span className="text-zinc-600">Déficit</span>
+                      <span className="text-zinc-600">Faltantes</span>
                       <span className="metric-value text-amber-400/80">
                         {fmt.format(c.deficit_total_cajones)} cajones
                       </span>
@@ -217,11 +217,11 @@ export default function DashboardPage() {
         <section className="animate-fade-in-up delay-3 space-y-6">
           <div className="flex items-end justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-zinc-100">Top oportunidades</h2>
-              <p className="text-sm text-zinc-500 mt-1">Predios con mayor viabilidad para inversión</p>
+              <h2 className="text-xl font-semibold text-zinc-100">Mejores oportunidades</h2>
+              <p className="text-sm text-zinc-500 mt-1">Lotes con mayor potencial de inversión</p>
             </div>
             <Link href="/predios" className="text-xs text-emerald-400/70 hover:text-emerald-400 flex items-center gap-1 transition-colors">
-              Ver {fmt.format(totalPredios)} predios <ArrowRight size={12} />
+              Ver {fmt.format(totalPredios)} lotes <ArrowRight size={12} />
             </Link>
           </div>
 
@@ -233,7 +233,7 @@ export default function DashboardPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-[#1e2229]">
-                      {['#', 'Predio', 'Ciudad', 'Área', 'Score', 'Cajones'].map(h => (
+                      {['#', 'Lote', 'Ciudad', 'Área', 'Viabilidad', 'Cajones'].map(h => (
                         <th key={h} className="px-5 py-3.5 text-left text-[10px] uppercase tracking-widest text-zinc-600 font-medium">
                           {h}
                         </th>
@@ -289,21 +289,21 @@ export default function DashboardPage() {
         {/* ═══ METODOLOGÍA ═══ */}
         <section className="animate-fade-in-up delay-4 space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-zinc-100">Metodología de scoring</h2>
+            <h2 className="text-xl font-semibold text-zinc-100">Metodología de evaluación</h2>
             <p className="text-sm text-zinc-500 mt-1">
-              Cada predio se evalúa en 4 dimensiones ponderadas basadas en normativa colombiana
+              Cada lote se evalúa en 4 dimensiones ponderadas basadas en normativa colombiana
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {[
               { icon: Target, title: 'Demanda', weight: 40, color: '#34d399',
-                desc: 'Déficit de cajones basado en generadores cercanos y factores normativos por tipo (Decreto 1077/2015)' },
+                desc: 'Cajones faltantes basados en atractores de demanda cercanos y factores normativos (Decreto 1077/2015)' },
               { icon: Navigation, title: 'Accesibilidad', weight: 25, color: '#60a5fa',
                 desc: 'Proximidad a vías principales, transporte público y red de movilidad urbana' },
               { icon: Ruler, title: 'Área', weight: 20, color: '#c084fc',
-                desc: 'Tamaño óptimo del predio para operación eficiente (2,500–8,000 m² ideal)' },
-              { icon: ShieldCheck, title: 'Restricciones', weight: 15, color: '#fbbf24',
+                desc: 'Tamaño óptimo del lote para operación eficiente (2,500–8,000 m² ideal)' },
+              { icon: ShieldCheck, title: 'Viabilidad Legal', weight: 15, color: '#fbbf24',
                 desc: 'Compatibilidad con POT, BIC, restricciones ambientales y étnicas' },
             ].map((d, i) => (
               <div key={d.title} className={`card-observatory p-5 animate-fade-in-up delay-${i + 1}`}>
@@ -328,9 +328,11 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
               <span className="font-semibold text-tensor/50">tensor.lat</span>
-              <span className="text-zinc-700">— Inteligencia Territorial</span>
+              <span className="text-zinc-700">— Plataforma de Inversión en Parqueaderos</span>
             </div>
             <div className="flex items-center gap-3 font-mono">
+              <span>IGAC</span>
+              <span className="text-zinc-800">·</span>
               <span>datos.gov.co</span>
               <span className="text-zinc-800">·</span>
               <span>Google Places</span>

@@ -174,3 +174,81 @@ body::before {
   background: linear-gradient(90deg, transparent, var(--color-tensor), transparent);
   opacity: 0.3;
 }
+
+/* ══════════════════════════════════════════════════════
+   WS-4: Print Styles
+   ══════════════════════════════════════════════════════ */
+@media print {
+  body {
+    background: #fff !important;
+    color: #1a1a1a !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  body::before { display: none !important; }
+  .grid-pattern { background-image: none !important; }
+
+  /* Hide sidebar and nav */
+  aside, nav, button[aria-label="Abrir menú"] {
+    display: none !important;
+  }
+  main { overflow: visible !important; }
+  .flex.h-screen { display: block !important; }
+
+  /* Cards: white bg, dark borders */
+  .card-observatory,
+  .bg-zinc-900,
+  .bg-zinc-800\/50,
+  [class*="bg-zinc-"] {
+    background: #fff !important;
+    border-color: #d4d4d8 !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  /* Text colors for print */
+  .text-zinc-100, .text-zinc-200, .text-zinc-300 { color: #1a1a1a !important; }
+  .text-zinc-400, .text-zinc-500 { color: #52525b !important; }
+  .text-emerald-400, .text-emerald-300, .text-tensor { color: #059669 !important; }
+
+  /* Score bars print-friendly */
+  .bg-emerald-500, .bg-emerald-500\/15 { background: #10b981 !important; }
+  .bg-yellow-500, .bg-yellow-500\/15 { background: #eab308 !important; }
+  .bg-orange-500, .bg-orange-500\/15 { background: #f97316 !important; }
+  .bg-red-500, .bg-red-500\/15 { background: #ef4444 !important; }
+
+  /* Hide interactive elements */
+  input[type="range"], input[type="number"], select { display: none !important; }
+  .score-ring { border: 2px solid currentColor; }
+
+  /* Page breaks */
+  .space-y-8 > * { page-break-inside: avoid; }
+}
+
+/* ══════════════════════════════════════════════════════
+   WS-5: Accessibility
+   ══════════════════════════════════════════════════════ */
+
+/* Keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--color-tensor);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* High contrast mode — patterns for score bars */
+@media (prefers-contrast: more) {
+  .bg-emerald-500 { background: #059669 !important; }
+  .bg-yellow-500 { background: #a16207 !important; }
+  .bg-orange-500 { background: #c2410c !important; }
+  .bg-red-500 { background: #b91c1c !important; }
+
+  .card-observatory {
+    border-width: 2px;
+  }
+}
+
+/* Score label utility classes */
+.score-label-alta { color: #34d399; }
+.score-label-media { color: #fbbf24; }
+.score-label-baja { color: #f87171; }

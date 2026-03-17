@@ -147,7 +147,7 @@ export default function CiudadesPage() {
           Comparativa de Ciudades
         </h1>
         <p className="text-sm text-zinc-400 mt-1">
-          Análisis comparativo de déficit de estacionamiento y oportunidades de inversión por ciudad
+          Análisis comparativo de estacionamientos faltantes y oportunidades de inversión por ciudad
         </p>
       </div>
 
@@ -203,7 +203,7 @@ export default function CiudadesPage() {
                     {ciudad.total_predios || 0}
                   </div>
                   <div className="text-[10px] text-zinc-500 uppercase tracking-wider">
-                    Predios
+                    Lotes
                   </div>
                 </div>
                 <div className="text-center">
@@ -214,7 +214,7 @@ export default function CiudadesPage() {
                     {ciudad.total_generadores || 0}
                   </div>
                   <div className="text-[10px] text-zinc-500 uppercase tracking-wider">
-                    Generadores
+                    Atractores
                   </div>
                 </div>
                 <div className="text-center">
@@ -225,7 +225,7 @@ export default function CiudadesPage() {
                     {fmt.format(ciudad.deficit_total_cajones || 0)}
                   </div>
                   <div className="text-[10px] text-zinc-500 uppercase tracking-wider">
-                    Deficit Cajones
+                    Cajones Faltantes
                   </div>
                 </div>
               </div>
@@ -234,7 +234,7 @@ export default function CiudadesPage() {
               <div className="flex items-center gap-2 p-2.5 rounded-lg bg-zinc-800/50 border border-zinc-800">
                 <Trophy size={14} className="text-yellow-400 shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-zinc-500">Top predio</p>
+                  <p className="text-xs text-zinc-500">Mejor lote</p>
                   <p className="text-sm text-zinc-200 truncate">
                     {ciudad.top_predio_nombre}
                   </p>
@@ -264,7 +264,7 @@ export default function CiudadesPage() {
       <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
         <h2 className="text-sm font-semibold text-zinc-200 mb-4 flex items-center gap-2">
           <TrendingUp size={16} className="text-amber-400" />
-          Deficit de Cajones por Ciudad
+          Cajones Faltantes por Ciudad
         </h2>
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height={320}>
@@ -287,7 +287,7 @@ export default function CiudadesPage() {
               <Bar
                 dataKey="deficit"
                 fill="#f59e0b"
-                name="Deficit Cajones"
+                name="Cajones Faltantes"
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>
@@ -315,16 +315,16 @@ export default function CiudadesPage() {
                   Poblacion
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                  Predios
+                  Lotes
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                  Generadores
+                  Atractores
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                  Deficit Cajones
+                  Cajones Faltantes
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                  Top Score
+                  Mayor Viabilidad
                 </th>
               </tr>
             </thead>

@@ -12,12 +12,13 @@ import {
   ChevronRight,
   Menu,
   X,
+  Database,
 } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/mapa", label: "Explorador", icon: Map },
-  { href: "/predios", label: "Ranking", icon: Building2 },
+  { href: "/mapa", label: "Mapa", icon: Map },
+  { href: "/predios", label: "Oportunidades", icon: Building2 },
   { href: "/ciudades", label: "Ciudades", icon: LayoutGrid },
 ];
 
@@ -48,9 +49,15 @@ export function Sidebar() {
           </button>
         </div>
         {!collapsed && (
-          <p className="px-4 pb-3 text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium">
-            Inteligencia Territorial
-          </p>
+          <>
+            <p className="px-4 pb-1.5 text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-medium">
+              Inversión en Parqueaderos
+            </p>
+            <div className="px-4 pb-3 flex items-center gap-1.5">
+              <Database size={10} className="text-emerald-500/60" />
+              <span className="text-[9px] text-zinc-500">Datos actualizados: Mar 2026</span>
+            </div>
+          </>
         )}
         <div className="separator-glow mx-4" />
       </div>

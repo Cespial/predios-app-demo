@@ -98,7 +98,7 @@ function PredioCard({
           { l: 'Area', v: predio.score_area },
           { l: 'Acc.', v: predio.score_accesibilidad },
           { l: 'Dem.', v: predio.score_demanda },
-          { l: 'Rest.', v: predio.score_restricciones },
+          { l: 'Legal', v: predio.score_restricciones },
         ].map((s) => (
           <div key={s.l} className="text-center">
             <div className="h-1 rounded-full bg-zinc-700 overflow-hidden">
@@ -198,8 +198,8 @@ function DeficitIndicador({ deficit }: { deficit: number }) {
       <AlertTriangle size={14} />
       <span className="text-sm font-medium">
         {isDeficit
-          ? `Deficit: ${fmt.format(deficit)} cajones`
-          : 'Sin deficit de cajones'}
+          ? `Faltan ${fmt.format(deficit)} cajones`
+          : 'Sin faltantes de cajones'}
       </span>
     </div>
   );
@@ -587,8 +587,8 @@ export default function MapaPage() {
       {/* ── LEFT PANEL ── */}
       <div className="w-80 shrink-0 flex flex-col bg-zinc-900 border-r border-zinc-800 overflow-hidden">
         <div className="p-3 border-b border-zinc-800">
-          <h1 className="text-sm font-semibold text-zinc-200">Explorador de Predios</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">Selecciona una ciudad y filtra por criterios</p>
+          <h1 className="text-sm font-semibold text-zinc-200">Mapa de Lotes</h1>
+          <p className="text-xs text-zinc-500 mt-0.5">Selecciona una ciudad y filtra lotes</p>
         </div>
         <CiudadSelector
           ciudades={ciudades}
@@ -618,7 +618,7 @@ export default function MapaPage() {
             {/* Score slider */}
             <div>
               <label className="block text-xs text-zinc-400 mb-1.5">
-                Score minimo: {filtros.scoreMin}
+                Viabilidad mínima: {filtros.scoreMin}
               </label>
               <input
                 type="range"
@@ -686,7 +686,7 @@ export default function MapaPage() {
                 }
                 className="rounded border-zinc-600 bg-zinc-800 text-emerald-500 focus:ring-emerald-500/50"
               />
-              Solo sin restricciones
+              Solo sin restricciones legales
             </label>
           </div>
         )}
@@ -737,7 +737,7 @@ export default function MapaPage() {
             {
               key: 'generadores' as const,
               icon: Building2,
-              label: 'Generadores',
+              label: 'Atractores',
               color: 'text-violet-400',
             },
             {
@@ -749,7 +749,7 @@ export default function MapaPage() {
             {
               key: 'deficit' as const,
               icon: AlertTriangle,
-              label: 'Zonas Deficit',
+              label: 'Zonas Faltantes',
               color: 'text-red-400',
             },
           ].map((layer) => (
@@ -819,7 +819,7 @@ export default function MapaPage() {
               </div>
               <div>
                 <p className="text-sm font-medium text-zinc-300">
-                  Score Total
+                  Viabilidad
                 </p>
                 <p className="text-xs text-zinc-500">
                   {predioSeleccionado.score_total >= 80
@@ -861,7 +861,7 @@ export default function MapaPage() {
                 {/* Top 3 generadores */}
                 <div>
                   <h3 className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
-                    Generadores cercanos
+                    Atractores de demanda cercanos
                   </h3>
                   <div className="space-y-2">
                     {detailData.generadores.map((g, i) => (
@@ -883,7 +883,7 @@ export default function MapaPage() {
                     ))}
                     {detailData.generadores.length === 0 && (
                       <p className="text-sm text-zinc-500">
-                        No se encontraron generadores cercanos
+                        No se encontraron atractores cercanos
                       </p>
                     )}
                   </div>

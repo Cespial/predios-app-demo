@@ -17,6 +17,8 @@ import {
   Loader2,
   FileText,
   AlertTriangle,
+  Printer,
+  Database,
 } from 'lucide-react';
 import {
   RadarChart,
@@ -61,13 +63,23 @@ function scoreBgLight(score: number) {
   return 'bg-red-500/15';
 }
 
+/* ── Score label text ── */
+function scoreLabel(value: number) {
+  if (value >= 80) return 'Alta';
+  if (value >= 60) return 'Media';
+  if (value >= 40) return 'Media-Baja';
+  return 'Baja';
+}
+
 /* ── ScoreBar ── */
 function ScoreBar({ label, value, explanation }: { label: string; value: number; explanation?: string }) {
   return (
     <div className="space-y-1.5">
       <div className="flex justify-between text-sm">
         <span className="text-zinc-300">{label}</span>
-        <span className={`font-semibold ${scoreColor(value)}`}>{value}</span>
+        <span className={`font-semibold ${scoreColor(value)}`}>
+          {value} <span className="text-xs font-normal opacity-70">({scoreLabel(value)})</span>
+        </span>
       </div>
       <div className="h-2 rounded-full bg-zinc-700">
         <div
@@ -96,8 +108,20 @@ function GeneradorIcon({ tipo }: { tipo: string }) {
   return <span className="text-lg">{icons[tipo] || '\u{1F4CD}'}</span>;
 }
 
-/* ── IngresoSimulador ── */
-function IngresoSimulador({
+/* ── ROI Calculator ── */
+const TIPO_CONSTRUCCION = [
+  { label: 'Superficie', costoMCajon: 15, key: 'superficie' },
+  { label: 'Estructura', costoMCajon: 35, key: 'estructura' },
+  { label: 'Subterráneo', costoMCajon: 55, key: 'subterraneo' },
+] as const;
+
+function paybackColor(years: number) {
+  if (years < 5) return { bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/20', label: 'Atractivo' };
+  if (years <= 8) return { bg: 'bg-yellow-500/15', text: 'text-yellow-400', border: 'border-yellow-500/20', label: 'Moderado' };
+  return { bg: 'bg-red-500/15', text: 'text-red-400', border: 'border-red-500/20', label: 'Alto riesgo' };
+}
+
+function ROICalculator({
   cajones,
   tarifaHora,
 }: {
@@ -107,19 +131,30 @@ function IngresoSimulador({
   const [cajonesInput, setCajonesInput] = useState(cajones);
   const [tarifa, setTarifa] = useState(tarifaHora);
   const [ocupacion, setOcupacion] = useState(65);
+  const [tipoIdx, setTipoIdx] = useState(0);
 
+  const tipo = TIPO_CONSTRUCCION[tipoIdx];
   const horasOperacion = 14;
   const diasMes = 30;
-  const ingresoMes = Math.round(
+  const opexRate = 0.35;
+
+  const ingresoBrutoMes = Math.round(
     cajonesInput * tarifa * (ocupacion / 100) * horasOperacion * diasMes
   );
+  const ingresoNetoMes = Math.round(ingresoBrutoMes * (1 - opexRate));
+  const inversionTotal = cajonesInput * tipo.costoMCajon * 1_000_000;
+  const paybackYears = ingresoNetoMes > 0 ? inversionTotal / (ingresoNetoMes * 12) : Infinity;
+  const roiAnual = inversionTotal > 0 ? ((ingresoNetoMes * 12) / inversionTotal) * 100 : 0;
+  const pb = paybackColor(paybackYears);
 
   return (
-    <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-      <h3 className="text-sm font-semibold text-zinc-200 mb-4">
-        Simulador de Ingresos
+    <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 space-y-4">
+      <h3 className="text-sm font-semibold text-zinc-200">
+        Modelo Financiero
       </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+
+      {/* Inputs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="block text-xs text-zinc-400 mb-1">Cajones</label>
           <input
@@ -140,30 +175,71 @@ function IngresoSimulador({
             className="w-full rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-100 text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
           />
         </div>
-        <div>
-          <label className="block text-xs text-zinc-400 mb-1">
-            Ocupacion: {ocupacion}%
-          </label>
-          <input
-            type="range"
-            min={10}
-            max={100}
-            value={ocupacion}
-            onChange={(e) => setOcupacion(Number(e.target.value))}
-            className="w-full accent-emerald-500 mt-2"
-          />
+      </div>
+
+      {/* Ocupacion slider */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <label className="text-xs text-zinc-400">Ocupación promedio</label>
+          <span className="text-xs font-semibold text-emerald-400">{ocupacion}%</span>
+        </div>
+        <input
+          type="range"
+          min={30}
+          max={95}
+          value={ocupacion}
+          onChange={(e) => setOcupacion(Number(e.target.value))}
+          className="w-full h-1.5 bg-zinc-700 rounded-full appearance-none cursor-pointer accent-emerald-500"
+        />
+      </div>
+
+      {/* Tipo de construcción */}
+      <div>
+        <label className="block text-xs text-zinc-400 mb-2">Tipo de construcción</label>
+        <div className="grid grid-cols-3 gap-2">
+          {TIPO_CONSTRUCCION.map((t, i) => (
+            <button
+              key={t.key}
+              onClick={() => setTipoIdx(i)}
+              className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${
+                tipoIdx === i
+                  ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400'
+                  : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600'
+              }`}
+            >
+              <span className="block">{t.label}</span>
+              <span className="block text-[10px] mt-0.5 opacity-70">${t.costoMCajon}M/cajón</span>
+            </button>
+          ))}
         </div>
       </div>
-      <div className="flex items-center justify-between p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-        <span className="text-sm text-emerald-300">
-          Ingreso mensual estimado
-        </span>
-        <span className="text-xl font-bold text-emerald-400">
-          ${fmt.format(ingresoMes)}
-        </span>
+
+      {/* Results */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-zinc-800/50 rounded-lg p-3">
+          <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Inversión total</p>
+          <p className="text-lg font-bold text-zinc-100">${fmt.format(inversionTotal)}</p>
+        </div>
+        <div className="bg-zinc-800/50 rounded-lg p-3">
+          <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Ingreso neto/mes</p>
+          <p className="text-lg font-bold text-emerald-400">${fmt.format(ingresoNetoMes)}</p>
+          <p className="text-[10px] text-zinc-500">Bruto ${fmt.format(ingresoBrutoMes)} − 35% opex</p>
+        </div>
+        <div className={`rounded-lg p-3 border ${pb.bg} ${pb.border}`}>
+          <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Recuperación</p>
+          <p className={`text-lg font-bold ${pb.text}`}>
+            {paybackYears === Infinity ? '—' : paybackYears.toFixed(1)} años
+          </p>
+          <span className={`text-[10px] font-medium ${pb.text}`}>{pb.label}</span>
+        </div>
+        <div className="bg-zinc-800/50 rounded-lg p-3">
+          <p className="text-[10px] text-zinc-500 uppercase tracking-wider">ROI anual</p>
+          <p className="text-lg font-bold text-zinc-100">{roiAnual.toFixed(1)}%</p>
+        </div>
       </div>
-      <p className="text-xs text-zinc-500 mt-2">
-        Basado en {horasOperacion}h de operacion diaria, {diasMes} dias/mes
+
+      <p className="text-[10px] text-zinc-500 leading-relaxed">
+        Estimaciones indicativas basadas en {horasOperacion}h de operación diaria, {diasMes} días/mes. No reemplaza un estudio de factibilidad profesional.
       </p>
     </div>
   );
@@ -234,7 +310,7 @@ function FichaTecnicaAI({ predioId }: { predioId: string }) {
     <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 space-y-5">
       <h3 className="text-sm font-semibold text-zinc-200 flex items-center gap-2">
         <FileText size={16} className="text-emerald-400" />
-        Ficha Tecnica IA
+        Análisis IA
       </h3>
 
       {/* Resumen ejecutivo */}
@@ -362,7 +438,7 @@ function ChecklistNormativo({ items }: { items: NormativaItem[] }) {
     <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-zinc-200">
-          Checklist Normativo
+          Viabilidad Legal
         </h3>
         <span className="text-xs px-2 py-1 rounded-lg bg-zinc-800 text-zinc-400 border border-zinc-700">
           {verified} de {totalItems} verificados
@@ -672,7 +748,7 @@ export default function PredioDetallePage() {
     { subject: 'Area', value: predio.score_area },
     { subject: 'Accesibilidad', value: predio.score_accesibilidad },
     { subject: 'Demanda', value: predio.score_demanda },
-    { subject: 'Restricciones', value: predio.score_restricciones },
+    { subject: 'Viab. Legal', value: predio.score_restricciones },
   ];
 
   const deficitDemanda = Math.round(predio.deficit.aforo_total * 0.15);
@@ -713,6 +789,12 @@ export default function PredioDetallePage() {
                 {predio.ciudad_nombre}
               </span>
             )}
+            {predio.fuente && (
+              <span className="text-xs bg-zinc-800 text-zinc-400 px-2.5 py-1 rounded-lg border border-zinc-700 flex items-center gap-1">
+                <Database size={10} />
+                {predio.fuente}
+              </span>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -747,6 +829,13 @@ export default function PredioDetallePage() {
               <Share2 size={12} />
               {shared ? 'URL copiada' : 'Compartir'}
             </button>
+            <button
+              onClick={() => window.print()}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs transition-colors"
+            >
+              <Printer size={12} />
+              Imprimir
+            </button>
           </div>
         </div>
       </div>
@@ -761,10 +850,10 @@ export default function PredioDetallePage() {
             <h3 className="text-sm font-semibold text-emerald-300 mb-1">Resumen para Toma de Decisión</h3>
             <p className="text-sm text-zinc-300 leading-relaxed">
               {predio.score_total >= 80
-                ? `Este predio presenta una oportunidad de alta viabilidad (score ${predio.score_total}/100). Con ${fmt.format(predio.area_m2)} m² disponibles, permite la instalación de aproximadamente ${predio.cajones_estimados} cajones de estacionamiento. Se recomienda avanzar con estudio de factibilidad detallado.`
+                ? `Este lote presenta una oportunidad de alta viabilidad (${predio.score_total}/100). Con ${fmt.format(predio.area_m2)} m² disponibles, permite la instalación de aproximadamente ${predio.cajones_estimados} cajones de estacionamiento. Se recomienda avanzar con estudio de factibilidad detallado.`
                 : predio.score_total >= 60
-                ? `Este predio tiene viabilidad moderada (score ${predio.score_total}/100). El área de ${fmt.format(predio.area_m2)} m² es adecuada para ${predio.cajones_estimados} cajones, pero se identifican factores que requieren análisis adicional antes de proceder.`
-                : `Este predio requiere evaluación adicional (score ${predio.score_total}/100). Aunque cuenta con ${fmt.format(predio.area_m2)} m², factores de demanda, accesibilidad o restricciones normativas limitan su viabilidad inmediata.`}
+                ? `Este lote tiene viabilidad moderada (${predio.score_total}/100). El área de ${fmt.format(predio.area_m2)} m² es adecuada para ${predio.cajones_estimados} cajones, pero se identifican factores que requieren análisis adicional antes de proceder.`
+                : `Este lote requiere evaluación adicional (${predio.score_total}/100). Aunque cuenta con ${fmt.format(predio.area_m2)} m², factores de demanda, accesibilidad o restricciones normativas limitan su viabilidad inmediata.`}
             </p>
           </div>
         </div>
@@ -793,13 +882,13 @@ export default function PredioDetallePage() {
               icon: TrendingUp,
               label: 'Demanda',
               value: predio.score_demanda,
-              desc: `${predio.deficit.total_generadores} generadores cercanos`,
+              desc: `${predio.deficit.total_generadores} atractores de demanda cercanos`,
             },
             {
               icon: Shield,
-              label: 'Restricciones',
+              label: 'Viabilidad Legal',
               value: predio.score_restricciones,
-              desc: 'Normativa, BIC y restricciones',
+              desc: 'Normativa, BIC y restricciones legales',
             },
           ].map((s) => (
             <div
@@ -847,7 +936,7 @@ export default function PredioDetallePage() {
         {/* Generadores table */}
         <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
           <h3 className="text-sm font-semibold text-zinc-200 mb-4">
-            Generadores de Demanda Cercanos
+            Atractores de Demanda Cercanos
           </h3>
           {predio.generadores_cercanos && predio.generadores_cercanos.length > 0 ? (
             <div className="space-y-2">
@@ -880,7 +969,7 @@ export default function PredioDetallePage() {
             </div>
           ) : (
             <p className="text-sm text-zinc-500 text-center py-6">
-              No se encontraron generadores cercanos
+              No se encontraron atractores de demanda cercanos
             </p>
           )}
         </div>
@@ -913,7 +1002,7 @@ export default function PredioDetallePage() {
             </ResponsiveContainer>
           </div>
 
-          <IngresoSimulador
+          <ROICalculator
             cajones={
               predio.cajones_estimados || Math.round(predio.area_m2 / 25)
             }

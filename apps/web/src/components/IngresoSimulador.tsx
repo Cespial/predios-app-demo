@@ -1,21 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Calculator, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Calculator } from "lucide-react";
 
-interface IngresoSimuladorProps {
+interface ROICalculatorProps {
   cajones: number;
   tarifaHora: number;
 }
 
-function calcIngresoMensual(
-  cajones: number,
-  ocupacion: number,
-  horasOp: number,
-  tarifaHora: number
-): number {
-  return cajones * ocupacion * horasOp * tarifaHora * 30;
-}
+const TIPO_CONSTRUCCION = [
+  { label: 'Superficie', costoMCajon: 15, key: 'superficie' },
+  { label: 'Estructura', costoMCajon: 35, key: 'estructura' },
+  { label: 'Subterráneo', costoMCajon: 55, key: 'subterraneo' },
+] as const;
 
 const formatCOP = (n: number) =>
   new Intl.NumberFormat("es-CO", {
@@ -24,16 +21,29 @@ const formatCOP = (n: number) =>
     maximumFractionDigits: 0,
   }).format(n);
 
+function paybackColor(years: number) {
+  if (years < 5) return { text: 'text-emerald-400', label: 'Atractivo' };
+  if (years <= 8) return { text: 'text-yellow-400', label: 'Moderado' };
+  return { text: 'text-red-400', label: 'Alto riesgo' };
+}
+
 export function IngresoSimulador({
   cajones,
   tarifaHora,
-}: IngresoSimuladorProps) {
+}: ROICalculatorProps) {
   const [ocupacion, setOcupacion] = useState(60);
   const [horasOp, setHorasOp] = useState(14);
+  const [tipoIdx, setTipoIdx] = useState(0);
 
-  const pesimista = calcIngresoMensual(cajones, 0.4, horasOp, tarifaHora);
-  const base = calcIngresoMensual(cajones, ocupacion / 100, horasOp, tarifaHora);
-  const optimista = calcIngresoMensual(cajones, 0.8, horasOp, tarifaHora);
+  const tipo = TIPO_CONSTRUCCION[tipoIdx];
+  const opexRate = 0.35;
+
+  const ingresoBruto = cajones * (ocupacion / 100) * horasOp * tarifaHora * 30;
+  const ingresoNeto = Math.round(ingresoBruto * (1 - opexRate));
+  const inversionTotal = cajones * tipo.costoMCajon * 1_000_000;
+  const paybackYears = ingresoNeto > 0 ? inversionTotal / (ingresoNeto * 12) : Infinity;
+  const roiAnual = inversionTotal > 0 ? ((ingresoNeto * 12) / inversionTotal) * 100 : 0;
+  const pb = paybackColor(paybackYears);
 
   return (
     <div className="space-y-4">
@@ -41,7 +51,7 @@ export function IngresoSimulador({
       <div className="flex items-center gap-2">
         <Calculator size={16} className="text-emerald-400" />
         <span className="text-sm font-semibold text-zinc-200">
-          Simulador de Ingresos
+          Modelo Financiero
         </span>
       </div>
 
@@ -59,12 +69,31 @@ export function IngresoSimulador({
         </div>
       </div>
 
+      {/* Tipo de construcción */}
+      <div>
+        <label className="block text-xs text-zinc-400 mb-2">Tipo de construcción</label>
+        <div className="grid grid-cols-3 gap-2">
+          {TIPO_CONSTRUCCION.map((t, i) => (
+            <button
+              key={t.key}
+              onClick={() => setTipoIdx(i)}
+              className={`px-2 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                tipoIdx === i
+                  ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400'
+                  : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Sliders */}
       <div className="space-y-3">
-        {/* Ocupacion */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-xs text-zinc-400">Ocupacion promedio</label>
+            <label className="text-xs text-zinc-400">Ocupación promedio</label>
             <span className="text-xs font-semibold text-emerald-400">
               {ocupacion}%
             </span>
@@ -77,16 +106,11 @@ export function IngresoSimulador({
             onChange={(e) => setOcupacion(Number(e.target.value))}
             className="w-full h-1.5 bg-zinc-700 rounded-full appearance-none cursor-pointer accent-emerald-500"
           />
-          <div className="flex justify-between text-[10px] text-zinc-600 mt-0.5">
-            <span>30%</span>
-            <span>95%</span>
-          </div>
         </div>
 
-        {/* Horas operacion */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-xs text-zinc-400">Horas operacion</label>
+            <label className="text-xs text-zinc-400">Horas operación</label>
             <span className="text-xs font-semibold text-emerald-400">
               {horasOp}h
             </span>
@@ -99,63 +123,41 @@ export function IngresoSimulador({
             onChange={(e) => setHorasOp(Number(e.target.value))}
             className="w-full h-1.5 bg-zinc-700 rounded-full appearance-none cursor-pointer accent-emerald-500"
           />
-          <div className="flex justify-between text-[10px] text-zinc-600 mt-0.5">
-            <span>8h</span>
-            <span>24h</span>
-          </div>
         </div>
       </div>
 
-      {/* Scenarios */}
+      {/* Results */}
       <div className="space-y-2">
         <h4 className="text-xs text-zinc-500 uppercase tracking-wider font-medium">
-          Escenarios mensuales
+          Resultados financieros
         </h4>
 
-        {/* Pesimista */}
-        <div className="flex items-center justify-between bg-red-500/5 border border-red-500/10 rounded-lg px-4 py-3">
-          <div className="flex items-center gap-2">
-            <TrendingDown size={14} className="text-red-400" />
-            <div>
-              <span className="text-xs text-zinc-400">Pesimista</span>
-              <span className="text-[10px] text-zinc-600 ml-1">(40% ocu.)</span>
-            </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-zinc-800/50 rounded-lg p-3">
+            <p className="text-[10px] text-zinc-500 uppercase">Inversión total</p>
+            <p className="text-sm font-bold text-zinc-200">{formatCOP(inversionTotal)}</p>
           </div>
-          <span className="text-sm font-bold text-red-300">
-            {formatCOP(pesimista)}
-          </span>
-        </div>
-
-        {/* Base */}
-        <div className="flex items-center justify-between bg-emerald-500/5 border border-emerald-500/10 rounded-lg px-4 py-3">
-          <div className="flex items-center gap-2">
-            <Minus size={14} className="text-emerald-400" />
-            <div>
-              <span className="text-xs text-zinc-400">Base</span>
-              <span className="text-[10px] text-zinc-600 ml-1">
-                ({ocupacion}% ocu.)
-              </span>
-            </div>
+          <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-lg p-3">
+            <p className="text-[10px] text-zinc-500 uppercase">Ingreso neto/mes</p>
+            <p className="text-sm font-bold text-emerald-300">{formatCOP(ingresoNeto)}</p>
           </div>
-          <span className="text-sm font-bold text-emerald-300">
-            {formatCOP(base)}
-          </span>
-        </div>
-
-        {/* Optimista */}
-        <div className="flex items-center justify-between bg-blue-500/5 border border-blue-500/10 rounded-lg px-4 py-3">
-          <div className="flex items-center gap-2">
-            <TrendingUp size={14} className="text-blue-400" />
-            <div>
-              <span className="text-xs text-zinc-400">Optimista</span>
-              <span className="text-[10px] text-zinc-600 ml-1">(80% ocu.)</span>
-            </div>
+          <div className="bg-zinc-800/50 rounded-lg p-3">
+            <p className="text-[10px] text-zinc-500 uppercase">Recuperación</p>
+            <p className={`text-sm font-bold ${pb.text}`}>
+              {paybackYears === Infinity ? '—' : paybackYears.toFixed(1)} años
+            </p>
+            <span className={`text-[10px] ${pb.text}`}>{pb.label}</span>
           </div>
-          <span className="text-sm font-bold text-blue-300">
-            {formatCOP(optimista)}
-          </span>
+          <div className="bg-zinc-800/50 rounded-lg p-3">
+            <p className="text-[10px] text-zinc-500 uppercase">ROI anual</p>
+            <p className="text-sm font-bold text-zinc-200">{roiAnual.toFixed(1)}%</p>
+          </div>
         </div>
       </div>
+
+      <p className="text-[10px] text-zinc-500 leading-relaxed">
+        Estimaciones indicativas. No reemplaza un estudio de factibilidad profesional.
+      </p>
     </div>
   );
 }

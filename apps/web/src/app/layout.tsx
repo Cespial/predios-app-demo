@@ -10,23 +10,23 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "tensor.lat — Inteligencia Territorial para Parqueaderos",
-  description: "Plataforma de análisis espacial que identifica predios públicos óptimos para desarrollo de infraestructura de estacionamiento en capitales colombianas. Datos reales de datos.gov.co, Google Places y OpenStreetMap.",
+  title: "tensor.lat — Plataforma de Inversión en Parqueaderos",
+  description: "Identifique los mejores lotes públicos para construir parqueaderos rentables en las principales ciudades de Colombia. Datos reales de IGAC, datos.gov.co, Google Places y OpenStreetMap.",
   keywords: [
     "tensor.lat",
-    "inteligencia territorial",
-    "predios",
+    "inversión parqueaderos",
+    "lotes públicos",
     "parqueaderos",
     "estacionamiento",
     "Colombia",
     "análisis espacial",
     "datos.gov.co",
     "catastro",
-    "urbanismo",
+    "ROI parqueaderos",
   ],
   openGraph: {
-    title: "tensor.lat — Inteligencia Territorial para Parqueaderos",
-    description: "Plataforma de análisis espacial que identifica predios públicos óptimos para desarrollo de infraestructura de estacionamiento en capitales colombianas.",
+    title: "tensor.lat — Plataforma de Inversión en Parqueaderos",
+    description: "Identifique los mejores lotes públicos para construir parqueaderos rentables en las principales ciudades de Colombia.",
     type: "website",
   },
 };

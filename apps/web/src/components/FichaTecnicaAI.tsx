@@ -8,6 +8,7 @@ import {
   RefreshCw,
   AlertTriangle,
   Sparkles,
+  Clock,
 } from "lucide-react";
 
 interface FichaTecnicaAIProps {
@@ -230,8 +231,14 @@ export function FichaTecnicaAI({ predioId }: FichaTecnicaAIProps) {
         <div className="flex items-center gap-2">
           <Sparkles size={16} className="text-emerald-400" />
           <span className="text-sm font-semibold text-zinc-200">
-            Ficha Tecnica IA
+            Análisis IA
           </span>
+          {ficha.generado_en && (
+            <span className="flex items-center gap-1 text-[10px] text-zinc-500">
+              <Clock size={10} />
+              {new Date(ficha.generado_en).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </span>
+          )}
         </div>
         <button
           onClick={handleRegenerate}

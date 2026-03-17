@@ -51,6 +51,19 @@ interface FichaData {
   ingresos_estimados_mes?: number;
 }
 
+interface FinancieroData {
+  cajones: number;
+  tarifaHora: number;
+  ocupacion: number;
+  tipoConstruccion: string;
+  costoMCajon: number;
+  inversionTotal: number;
+  ingresoBrutoMes: number;
+  ingresoNetoMes: number;
+  paybackYears: number;
+  roiAnual: number;
+}
+
 interface NormativaData {
   componente: string;
   norma: string;
@@ -63,6 +76,7 @@ export interface PDFInput {
   deficit: DeficitData;
   ficha: FichaData | null;
   normativa: NormativaData[];
+  financiero?: FinancieroData;
 }
 
 // ---------------------------------------------------------------------------
@@ -370,7 +384,7 @@ function TableRow({
 // PDF Document
 // ---------------------------------------------------------------------------
 function FichaDocument({ data }: { data: PDFInput }) {
-  const { predio, generadores, deficit, ficha, normativa } = data;
+  const { predio, generadores, deficit, ficha, normativa, financiero } = data;
   const now = new Date().toLocaleDateString('es-CO', {
     year: 'numeric',
     month: 'long',
@@ -387,22 +401,22 @@ function FichaDocument({ data }: { data: PDFInput }) {
 
   return (
     <Document
-      title={`Ficha Técnica — ${predio.nombre}`}
+      title={`Ficha de Inversión — ${predio.nombre}`}
       author="tensor.lat"
-      subject="Ficha Técnica de Predio"
+      subject="Ficha de Inversión — Lote para Parqueadero"
     >
       <Page size="A4" style={styles.page}>
         {/* ---------- HEADER ---------- */}
         <View style={styles.header} fixed>
           <Text style={styles.logoText}>tensor.lat</Text>
           <View style={{ alignItems: 'center' }}>
-            <Text style={styles.headerTitle}>Ficha Técnica de Predio</Text>
+            <Text style={styles.headerTitle}>Ficha de Inversión</Text>
           </View>
           <Text style={styles.headerDate}>{now}</Text>
         </View>
 
         {/* ---------- SECTION 1: Property Info ---------- */}
-        <Text style={styles.sectionTitle}>1. Información del Predio</Text>
+        <Text style={styles.sectionTitle}>1. Información del Lote</Text>
         <View style={styles.infoGrid}>
           <View style={styles.infoCell}>
             <Text style={styles.infoLabel}>Nombre</Text>
@@ -430,7 +444,7 @@ function FichaDocument({ data }: { data: PDFInput }) {
           </View>
         </View>
         <View style={{ marginTop: 6 }}>
-          <Text style={styles.infoLabel}>Score Total</Text>
+          <Text style={styles.infoLabel}>Viabilidad Total</Text>
           <View style={styles.scoreTotalBox}>
             <Text style={styles.scoreTotalText}>
               {predio.score_total.toFixed(1)} / 100
@@ -439,11 +453,11 @@ function FichaDocument({ data }: { data: PDFInput }) {
         </View>
 
         {/* ---------- SECTION 2: Scores Breakdown ---------- */}
-        <Text style={styles.sectionTitle}>2. Desglose de Puntajes</Text>
+        <Text style={styles.sectionTitle}>2. Desglose de Viabilidad</Text>
         <ScoreBar label="Área" value={predio.score_area} />
         <ScoreBar label="Accesibilidad" value={predio.score_accesibilidad} />
         <ScoreBar label="Demanda" value={predio.score_demanda} />
-        <ScoreBar label="Restricciones" value={predio.score_restricciones} />
+        <ScoreBar label="Viabilidad Legal" value={predio.score_restricciones} />
 
         {/* ---------- SECTION 3: Demand Analysis ---------- */}
         <Text style={styles.sectionTitle}>3. Análisis de Demanda</Text>
@@ -477,7 +491,7 @@ function FichaDocument({ data }: { data: PDFInput }) {
         )}
 
         {/* ---------- SECTION 4: Parking Deficit ---------- */}
-        <Text style={styles.sectionTitle}>4. Déficit de Parqueaderos</Text>
+        <Text style={styles.sectionTitle}>4. Estacionamientos Faltantes</Text>
         <View style={styles.deficitGrid}>
           <View style={styles.deficitCard}>
             <Text style={styles.deficitCardLabel}>Capacidad Existente</Text>
@@ -500,7 +514,7 @@ function FichaDocument({ data }: { data: PDFInput }) {
               },
             ]}
           >
-            <Text style={styles.deficitCardLabel}>Déficit</Text>
+            <Text style={styles.deficitCardLabel}>Faltantes</Text>
             <Text
               style={[
                 styles.deficitCardValue,
@@ -526,11 +540,56 @@ function FichaDocument({ data }: { data: PDFInput }) {
           </View>
         </View>
 
-        {/* ---------- SECTION 5: AI Analysis ---------- */}
+        {/* ---------- SECTION 5: Financial Model ---------- */}
+        {financiero && (
+          <>
+            <Text style={styles.sectionTitle}>5. Modelo Financiero</Text>
+            <View style={styles.deficitGrid}>
+              <View style={styles.deficitCard}>
+                <Text style={styles.deficitCardLabel}>Inversión Total</Text>
+                <Text style={styles.deficitCardValue}>
+                  {fmtCurrency(financiero.inversionTotal)}
+                </Text>
+              </View>
+              <View style={styles.deficitCard}>
+                <Text style={styles.deficitCardLabel}>Ingreso Neto/Mes</Text>
+                <Text style={[styles.deficitCardValue, { color: colors.emerald }]}>
+                  {fmtCurrency(financiero.ingresoNetoMes)}
+                </Text>
+              </View>
+              <View style={[styles.deficitCard, {
+                borderColor: financiero.paybackYears < 5 ? colors.emerald : financiero.paybackYears <= 8 ? colors.amber500 : colors.red500,
+              }]}>
+                <Text style={styles.deficitCardLabel}>Recuperación</Text>
+                <Text style={[styles.deficitCardValue, {
+                  color: financiero.paybackYears < 5 ? colors.emerald : financiero.paybackYears <= 8 ? colors.amber500 : colors.red500,
+                }]}>
+                  {financiero.paybackYears.toFixed(1)} años
+                </Text>
+              </View>
+              <View style={styles.deficitCard}>
+                <Text style={styles.deficitCardLabel}>ROI Anual</Text>
+                <Text style={styles.deficitCardValue}>
+                  {financiero.roiAnual.toFixed(1)}%
+                </Text>
+              </View>
+            </View>
+            <View style={{ marginTop: 6 }}>
+              <Text style={styles.aiText}>
+                Tipo de construcción: {financiero.tipoConstruccion} (${fmt(financiero.costoMCajon)}M/cajón) · {financiero.cajones} cajones · Tarifa: {fmtCurrency(financiero.tarifaHora)}/h · Ocupación: {financiero.ocupacion}%
+              </Text>
+              <Text style={[styles.aiText, { fontStyle: 'italic', fontSize: 7 }]}>
+                Estimaciones indicativas. No reemplaza un estudio de factibilidad profesional.
+              </Text>
+            </View>
+          </>
+        )}
+
+        {/* ---------- SECTION 6: AI Analysis ---------- */}
         {ficha && (
           <>
             <Text style={styles.sectionTitle} break>
-              5. Análisis IA
+              {financiero ? '6' : '5'}. Análisis IA
             </Text>
 
             {ficha.resumen_ejecutivo && (
@@ -643,7 +702,7 @@ function FichaDocument({ data }: { data: PDFInput }) {
         {normativa.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>
-              {ficha ? '6' : '5'}. Normativa Aplicable
+              {financiero && ficha ? '7' : ficha ? '6' : financiero ? '6' : '5'}. Normativa Aplicable
             </Text>
             <View style={styles.table}>
               <TableHeader
@@ -671,7 +730,7 @@ function FichaDocument({ data }: { data: PDFInput }) {
         {/* ---------- FOOTER ---------- */}
         <View style={styles.footer} fixed>
           <Text style={styles.footerText}>
-            Generado por tensor.lat — {now}
+            Generado por tensor.lat — {now} · Fuentes: IGAC, datos.gov.co, Google Places, OSM, Claude AI
           </Text>
           <Text
             style={styles.footerText}
